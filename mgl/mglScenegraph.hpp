@@ -17,6 +17,7 @@
 #include "./mglOrbitCamera.hpp"
 #include "./mglShader.hpp"
 #include "./mglMesh.hpp"
+#include "./mglCallBack.hpp"
 
 const double THRESHOLD = static_cast<float>(1.0e-5);
 
@@ -42,9 +43,6 @@ public:
 	void addRoot(SceneNode* node);
 	SceneNode* getRoot();
 
-	void moveToBox(double elapsed);
-	void moveToShape(double elapsed);
-
 	void renderScene(double elapsed);
 
 	void drawNode(SceneNode* node);
@@ -54,7 +52,14 @@ public:
 
 class SceneNode {
 private:
+	bool active;
+
 	glm::mat4 ModelMatrix;
+
+	glm::vec3 Position;
+	glm::quat Rotation;
+	glm::vec3 Scale;
+
 	Mesh* mesh;
 	ShaderProgram* shaderProgram;
 	GLint ModelMatrixId;
@@ -65,21 +70,8 @@ private:
 
 	SceneNode* parent;
 	std::vector<SceneNode*> children;
-	
-	// animation destination
-	glm::quat AxisRotationDest;
-	glm::quat BoxRotationDest;
-	glm::vec3 BoxTranslationDest;
 
-	// animation origin
-	const glm::quat AxisRotationOrig = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	const glm::quat BoxRotationOrig = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	const glm::vec3 BoxTranslationOrig = glm::vec3(0.0f, 0.0f, 0.0f);
-
-	glm::mat4 AnimatedModelMatrix;
-
-	double Accum = 0;
-	double AnimationTime = 6;
+	CallBack* callback;
 
 	// parent
 	// vector childs
@@ -91,13 +83,18 @@ public:
 	void setModelMatrix(glm::mat4 ModelMatrix);
 	glm::mat4 getModelMatrix();
 
-	void setAnimationMovement(glm::quat axisRotationDest, glm::quat boxRotationDest, glm::vec3 boxTranslationDest);
-
 	void setNormalMatrix(glm::mat4 NormalMatrix);
 	glm::mat4 getNormalMatrix();
 
 	void setMesh(Mesh* mesh);
 	Mesh* getMesh();
+
+	void setPosition(glm::vec3 position);
+	const glm::vec3 getPosition();
+	void setRotation(glm::quat rotation);
+	const glm::quat getRotation();
+	void setScale(glm::vec3 scale);
+	const glm::vec3 getScale();
 
 	void setColor(glm::vec4 color);
 	glm::vec4 getColor();
@@ -105,16 +102,14 @@ public:
 	void setShaderProgram(ShaderProgram* shaderProgram);
 	ShaderProgram* getShaderProgram();
 
-	void setAnimationTime(double time);
-	void animate();
-	void moveToBox(double elapsed);
-	void moveToShape(double elapsed);
-
 	void addChild(SceneNode* node);
 	std::vector<SceneNode*> getChildren();
 
 	void setParent(SceneNode* node);
 	SceneNode* getParent();
+
+	void setCallBack(CallBack* callback);
+	CallBack* getCallBack();
 
 	void draw();
 };

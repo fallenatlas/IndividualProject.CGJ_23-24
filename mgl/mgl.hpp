@@ -21,5 +21,6 @@
 #include "./mglShader.hpp"
 #include "./mglOrbitCamera.hpp"
 #include "./mglKeyState.hpp"
+#include "./mglCallBack.hpp"
 
 #endif /* MGL_HPP */

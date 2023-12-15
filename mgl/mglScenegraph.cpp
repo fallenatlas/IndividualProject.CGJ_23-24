@@ -33,15 +33,6 @@ namespace mgl
 		return this->root;
 	}
 
-	void SceneGraph::moveToBox(double elapsed) {
-		root->moveToBox(elapsed);
-	}
-
-	void SceneGraph::moveToShape(double elapsed) {
-		root->moveToShape(elapsed);
-	}
-
-
 	void SceneGraph::renderScene(double elapsed) {
 		camera->updateRotation(elapsed);
 		root->draw();
@@ -55,13 +46,17 @@ namespace mgl
 
 	///////////////////////////////////////////////////////////////////////// SceneNode
 	SceneNode::SceneNode(GLint modelMatrixId, GLint normalMatrixId, GLint colorId) {
+		active = true;
 		ModelMatrix = glm::mat4(1.0f);
-		AnimatedModelMatrix = ModelMatrix;
+		Position = { 0.0f, 0.0f, 0.0f };
+		Rotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+		Scale = { 1.0f, 1.0f, 1.0f };
 		ModelMatrixId = modelMatrixId;
 		NormalMatrixId = normalMatrixId;
 		ColorId = colorId;
 		mesh = nullptr;
 		shaderProgram = nullptr;
+		callback = nullptr;
 
 		parent = nullptr;
 		children = std::vector<SceneNode*>();
@@ -71,18 +66,35 @@ namespace mgl
 
 	void SceneNode::setModelMatrix(glm::mat4 modelmatrix) {
 		ModelMatrix = modelmatrix;
-		AnimatedModelMatrix = ModelMatrix;
-		setNormalMatrix(glm::transpose(glm::inverse(AnimatedModelMatrix)));
+		setNormalMatrix(glm::transpose(glm::inverse(ModelMatrix)));
 	}
 
 	glm::mat4 SceneNode::getModelMatrix() {
 		return ModelMatrix;
 	}
 
-	void SceneNode::setAnimationMovement(glm::quat axisRotationDest, glm::quat boxRotationDest, glm::vec3 boxTranslationDest) {
-		AxisRotationDest = axisRotationDest;
-		BoxRotationDest = boxRotationDest;
-		BoxTranslationDest = boxTranslationDest;
+	void SceneNode::setPosition(glm::vec3 position) {
+		Position = position;
+	}
+
+	const glm::vec3 SceneNode::getPosition() {
+		return Position;
+	}
+
+	void SceneNode::setRotation(glm::quat rotation) {
+		Rotation = rotation;
+	}
+
+	const glm::quat SceneNode::getRotation() {
+		return Rotation;
+	}
+
+	void SceneNode::setScale(glm::vec3 scale) {
+		Scale = scale;
+	}
+
+	const glm::vec3 SceneNode::getScale() {
+		return Scale;
 	}
 
 	void SceneNode::setNormalMatrix(glm::mat4 normalMatrix) {
@@ -117,73 +129,6 @@ namespace mgl
 		return shaderProgram;
 	}
 
-	void SceneNode::setAnimationTime(double time) {
-		AnimationTime = time;
-	}
-
-	void SceneNode::animate() {
-		glm::vec3 BoxTranslationCurr = glm::mix(BoxTranslationOrig, BoxTranslationDest, Accum / AnimationTime);
-
-		glm::quat AxisRotationCurr = glm::slerp(AxisRotationOrig, AxisRotationDest, (float)Accum / (float)AnimationTime);
-
-		// start rotation only half way through the movement bc why not
-		glm::quat BoxRotationCurr;
-		if (Accum > AnimationTime / 2) {
-			float num = ((float)Accum - AnimationTime / 2) / ((float)AnimationTime / 2.0f);
-			BoxRotationCurr = glm::slerp(BoxRotationOrig, BoxRotationDest, num);
-		}
-		else {
-			BoxRotationCurr = BoxRotationOrig;
-		}
-
-		AnimatedModelMatrix = glm::mat4(AxisRotationCurr) * glm::translate(BoxTranslationCurr) * ModelMatrix * glm::mat4(BoxRotationCurr);
-
-		// update for color
-		setNormalMatrix(glm::transpose(glm::inverse(AnimatedModelMatrix)));
-	}
-
-	void SceneNode::moveToBox(double elapsed) {
-		// move children
-		for (auto child : children) {
-			child->moveToBox(elapsed);
-		}
-
-
-		if (glm::abs(Accum - AnimationTime) < THRESHOLD) return;
-
-		if (Accum + elapsed < AnimationTime) {
-			Accum += elapsed;
-		}
-		else {
-			Accum += AnimationTime - Accum;
-		}
-
-		animate();
-
-		
-	}
-
-	void SceneNode::moveToShape(double elapsed) {
-
-		// move children
-		for (auto child : children) {
-			child->moveToShape(elapsed);
-		}
-
-		if (glm::abs(Accum - 0.0) < THRESHOLD) return;
-
-		if (Accum - elapsed > 0.0) {
-			Accum -= elapsed;
-		}
-		else {
-			Accum -= Accum;
-		}
-
-		animate();
-
-		
-	}
-
 	void SceneNode::addChild(SceneNode* node) {
 		children.push_back(node);
 		node->parent = this;
@@ -201,14 +146,36 @@ namespace mgl
 		return parent;
 	}
 
+	void SceneNode::setCallBack(CallBack* callback) {
+		this->callback = callback;
+	}
+
+	CallBack* SceneNode::getCallBack() {
+		return callback;
+	}
+
 	void SceneNode::draw() {
+		if (callback) {
+			callback->beforeDraw();
+		}
+
+		// if (shaderProgram)
+		
 		if (mesh) {
 			shaderProgram->bind();
-			glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(AnimatedModelMatrix));
+
+			glm::mat4 parentModelMatrix = parent ? parent->getModelMatrix() : glm::mat4(1.0f);
+			setModelMatrix(parentModelMatrix * glm::translate(Position) * glm::mat4(Rotation) * glm::scale(Scale));
+
+			glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
 			glUniformMatrix4fv(NormalMatrixId, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
 			glUniform4fv(ColorId, 1, glm::value_ptr(Color));
 			mesh->draw();
 			shaderProgram->unbind();
+		}
+
+		if (callback) {
+			callback->afterDraw();
 		}
 
 		// draw children
