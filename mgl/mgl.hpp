@@ -22,5 +22,7 @@
 #include "./mglOrbitCamera.hpp"
 #include "./mglKeyState.hpp"
 #include "./mglCallBack.hpp"
+#include "./mglTexture.hpp"
+#include "./mglSampler.hpp"
 
 #endif /* MGL_HPP */

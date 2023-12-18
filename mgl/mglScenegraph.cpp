@@ -73,6 +73,14 @@ namespace mgl
 		return ModelMatrix;
 	}
 
+	void SceneNode::setTextureInfo(TextureInfo* TextureInfo) {
+		textureInfo = TextureInfo;
+	}
+
+	TextureInfo* SceneNode::getTextureInfo() {
+		return textureInfo;
+	}
+
 	void SceneNode::setPosition(glm::vec3 position) {
 		Position = position;
 	}
@@ -163,6 +171,10 @@ namespace mgl
 		
 		if (mesh) {
 			shaderProgram->bind();
+
+			if (textureInfo) {
+				textureInfo->updateShader(shaderProgram);
+			}
 
 			glm::mat4 parentModelMatrix = parent ? parent->getModelMatrix() : glm::mat4(1.0f);
 			setModelMatrix(parentModelMatrix * glm::translate(Position) * glm::mat4(Rotation) * glm::scale(Scale));

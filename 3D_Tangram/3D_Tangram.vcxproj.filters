@@ -45,6 +45,21 @@
     <ClCompile Include="..\mgl\mglCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\mgl\mglPickingTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mgl\mglSampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mgl\mglTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mgl\stb_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mgl\perlinNoise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cube-fs.glsl">
@@ -89,6 +104,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\mgl\mglCallBack.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglPickingTexture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglSampler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglTexture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\perlinNoise.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

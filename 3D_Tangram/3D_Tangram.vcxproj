@@ -26,8 +26,13 @@
     <ClCompile Include="..\mgl\mglKeyState.cpp" />
     <ClCompile Include="..\mgl\mglMesh.cpp" />
     <ClCompile Include="..\mgl\mglOrbitCamera.cpp" />
+    <ClCompile Include="..\mgl\mglPickingTexture.cpp" />
+    <ClCompile Include="..\mgl\mglSampler.cpp" />
     <ClCompile Include="..\mgl\mglScenegraph.cpp" />
     <ClCompile Include="..\mgl\mglShader.cpp" />
+    <ClCompile Include="..\mgl\mglTexture.cpp" />
+    <ClCompile Include="..\mgl\perlinNoise.cpp" />
+    <ClCompile Include="..\mgl\stb_image.cpp" />
     <ClCompile Include="hello-3d-world.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -45,8 +50,13 @@
     <ClInclude Include="..\mgl\mglKeyState.hpp" />
     <ClInclude Include="..\mgl\mglMesh.hpp" />
     <ClInclude Include="..\mgl\mglOrbitCamera.hpp" />
+    <ClInclude Include="..\mgl\mglPickingTexture.hpp" />
+    <ClInclude Include="..\mgl\mglSampler.hpp" />
     <ClInclude Include="..\mgl\mglScenegraph.hpp" />
     <ClInclude Include="..\mgl\mglShader.hpp" />
+    <ClInclude Include="..\mgl\mglTexture.hpp" />
+    <ClInclude Include="..\mgl\perlinNoise.hpp" />
+    <ClInclude Include="..\mgl\stb_image.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

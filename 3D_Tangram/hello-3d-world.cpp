@@ -46,6 +46,10 @@ class MyApp : public mgl::App {
   mgl::Mesh* BaseMesh = nullptr;
   mgl::Mesh* FloatingMesh = nullptr;
 
+  mgl::Texture2D* BaseTexture = nullptr;
+  mgl::NearestSampler* BaseSampler = nullptr;
+  mgl::TextureInfo* BaseTextureInfo = nullptr;
+
   double previousMousePositionX = 0;
   double previousMousePositionY = 0;
 
@@ -108,7 +112,7 @@ void MyApp::createMeshes() {
     //std::string square_mesh_file = "square_fixed.obj";
     //std::string paralelogram_mesh_file = "paralelogram_fixed.obj";
     //std::string triangle_mesh_file = "triangle_fixed.obj";
-    std::string base_mesh_fullname = mesh_dir + base_mesh_file;
+    std::string base_mesh_fullname = /*mesh_dir + base_mesh_file*/ "../04-assets/models/cube-vtn.obj";
     std::string floating_obj_mesh_fullname = mesh_dir + floating_obj_mesh_file;
     //std::string square_mesh_fullname = mesh_dir + square_mesh_file;
     //std::string paralelogram_mesh_fullname = mesh_dir + paralelogram_mesh_file;
@@ -121,6 +125,15 @@ void MyApp::createMeshes() {
     FloatingMesh = new mgl::Mesh();
     FloatingMesh->joinIdenticalVertices();
     FloatingMesh->create(floating_obj_mesh_fullname);
+
+    BaseTexture = new mgl::Texture2D();
+    //BaseTexture->load("../textures/cracks_512x512.png");
+    BaseTexture->generatePerlinNoiseTexture(512, 512);
+    
+    BaseSampler = new mgl::NearestSampler();
+    BaseSampler->create();
+
+    BaseTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, BaseTexture, BaseSampler);
 }
 
 ///////////////////////////////////////////////////////////////////////// SHADER
@@ -144,6 +157,7 @@ void MyApp::createShaderPrograms() {
     Shaders->addUniform(mgl::MODEL_MATRIX);
     Shaders->addUniform(mgl::COLOR_UNIFORM);
     Shaders->addUniform(mgl::NORMAL_MATRIX);
+    Shaders->addUniform(mgl::TEXTURE);
     Shaders->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
     Shaders->create();
 
@@ -219,6 +233,7 @@ void MyApp::createScene() {
     // square
     mgl::SillouetteCallBack* callback = new mgl::SillouetteCallBack();
     mgl::SceneNode* base = createNode(BaseMesh, basePosition, baseRotation, baseScale, baseColor, root);
+    base->setTextureInfo(BaseTextureInfo);
 
     //mgl::SceneNode* baseSillouette = createNode(BaseMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, root);
     //baseSillouette->setCallBack(callback);

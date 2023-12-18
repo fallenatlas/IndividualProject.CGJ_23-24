@@ -18,6 +18,7 @@
 #include "./mglShader.hpp"
 #include "./mglMesh.hpp"
 #include "./mglCallBack.hpp"
+#include "./mglTexture.hpp"
 
 const double THRESHOLD = static_cast<float>(1.0e-5);
 
@@ -72,6 +73,7 @@ private:
 	std::vector<SceneNode*> children;
 
 	CallBack* callback;
+	TextureInfo* textureInfo;
 
 	// parent
 	// vector childs
@@ -88,6 +90,9 @@ public:
 
 	void setMesh(Mesh* mesh);
 	Mesh* getMesh();
+
+	void setTextureInfo(TextureInfo* TextureInfo);
+	TextureInfo* getTextureInfo();
 
 	void setPosition(glm::vec3 position);
 	const glm::vec3 getPosition();
