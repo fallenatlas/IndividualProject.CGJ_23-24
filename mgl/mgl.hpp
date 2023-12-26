@@ -24,5 +24,6 @@
 #include "./mglCallBack.hpp"
 #include "./mglTexture.hpp"
 #include "./mglSampler.hpp"
+#include "./mglManager.hpp"
 
 #endif /* MGL_HPP */
