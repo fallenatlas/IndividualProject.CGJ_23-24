@@ -60,14 +60,9 @@
     <ClCompile Include="..\mgl\perlinNoise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cube-fs.glsl">
+    <ClCompile Include="..\mgl\mglManager.cpp">
       <Filter>Source Files</Filter>
-    </None>
-    <None Include="cube-vs.glsl">
-      <Filter>Source Files</Filter>
-    </None>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\mgl\mgl.hpp">
@@ -121,5 +116,22 @@
     <ClInclude Include="..\mgl\perlinNoise.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\mgl\mglManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="marble-fs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="marble-vs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="wood-fs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="wood-vs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

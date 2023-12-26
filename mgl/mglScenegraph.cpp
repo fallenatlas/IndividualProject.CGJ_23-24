@@ -53,7 +53,6 @@ namespace mgl
 		Scale = { 1.0f, 1.0f, 1.0f };
 		ModelMatrixId = modelMatrixId;
 		NormalMatrixId = normalMatrixId;
-		ColorId = colorId;
 		mesh = nullptr;
 		shaderProgram = nullptr;
 		callback = nullptr;
@@ -121,14 +120,6 @@ namespace mgl
 		return mesh;
 	}
 
-	void SceneNode::setColor(glm::vec4 color) {
-		Color = color;
-	}
-
-	glm::vec4 SceneNode::getColor() {
-		return Color;
-	}
-
 	void SceneNode::setShaderProgram(ShaderProgram* shaderProgram) {
 		this->shaderProgram = shaderProgram;
 	}
@@ -181,7 +172,7 @@ namespace mgl
 
 			glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
 			glUniformMatrix4fv(NormalMatrixId, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
-			glUniform4fv(ColorId, 1, glm::value_ptr(Color));
+			//glUniform4fv(ColorId, 1, glm::value_ptr(Color));
 			mesh->draw();
 			shaderProgram->unbind();
 		}

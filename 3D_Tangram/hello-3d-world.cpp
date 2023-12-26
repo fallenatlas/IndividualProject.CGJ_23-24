@@ -43,21 +43,26 @@ class MyApp : public mgl::App {
   GLint NormalMatrixId;
   GLint ColorId;
   mgl::SceneGraph* SceneGraph = nullptr;
-  mgl::Mesh* BaseMesh = nullptr;
-  mgl::Mesh* FloatingMesh = nullptr;
 
   mgl::Texture2D* BaseTexture = nullptr;
+  mgl::Texture3D* BaseTexture3D = nullptr;
+  mgl::Texture3D* FloatingTexture3D = nullptr;
   mgl::NearestSampler* BaseSampler = nullptr;
   mgl::TextureInfo* BaseTextureInfo = nullptr;
+  mgl::TextureInfo* FloatingTextureInfo = nullptr;
 
   double previousMousePositionX = 0;
   double previousMousePositionY = 0;
 
   void createMeshes();
+  void createMesh(std::string name, std::string meshFile);
+  void createTextures();
+  void createTexture(std::string name, mgl::Texture3D::Type type);
   void createShaderPrograms();
+  void createShaderProgram(std::string shaderName, std::string vsFile, std::string fsFile);
   void createCameras();
   void createScene();
-  mgl::SceneNode* createNode(mgl::Mesh* mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, glm::vec4 color, mgl::SceneNode* parent);
+  mgl::SceneNode* createNode(mgl::Mesh* mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent, mgl::ShaderProgram* shader);
   void drawScene(double elapsed);
   void processAnimation(double elapsed);
 };
@@ -109,39 +114,50 @@ void MyApp::createMeshes() {
     std::string mesh_dir = "../assets/";
     std::string base_mesh_file = "floating_wood_base.obj";
     std::string floating_obj_mesh_file = "floating_top_marble.obj";
-    //std::string square_mesh_file = "square_fixed.obj";
-    //std::string paralelogram_mesh_file = "paralelogram_fixed.obj";
-    //std::string triangle_mesh_file = "triangle_fixed.obj";
-    std::string base_mesh_fullname = /*mesh_dir + base_mesh_file*/ "../04-assets/models/cube-vtn.obj";
+
+    std::string base_mesh_fullname = mesh_dir + base_mesh_file /*"../04-assets/models/cube-vtn.obj"*/;
     std::string floating_obj_mesh_fullname = mesh_dir + floating_obj_mesh_file;
-    //std::string square_mesh_fullname = mesh_dir + square_mesh_file;
-    //std::string paralelogram_mesh_fullname = mesh_dir + paralelogram_mesh_file;
-    //std::string triangle_mesh_fullname = mesh_dir + triangle_mesh_file;
 
-    BaseMesh = new mgl::Mesh();
-    BaseMesh->joinIdenticalVertices();
-    BaseMesh->create(base_mesh_fullname);
+    createMesh("baseMesh", base_mesh_fullname);
+    createMesh("floatingMesh", floating_obj_mesh_fullname);
+}
 
-    FloatingMesh = new mgl::Mesh();
-    FloatingMesh->joinIdenticalVertices();
-    FloatingMesh->create(floating_obj_mesh_fullname);
+void MyApp::createMesh(std::string name, std::string meshFile) {
+    mgl::Mesh* mesh = new mgl::Mesh();
+    mesh->joinIdenticalVertices();
+    mesh->create(meshFile);
 
-    BaseTexture = new mgl::Texture2D();
-    //BaseTexture->load("../textures/cracks_512x512.png");
-    BaseTexture->generatePerlinNoiseTexture(512, 512);
-    
+    mgl::MeshManager::getInstance().add(name, mesh);
+}
+
+void MyApp::createTextures() {
     BaseSampler = new mgl::NearestSampler();
     BaseSampler->create();
 
-    BaseTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, BaseTexture, BaseSampler);
+    createTexture("baseTexture3D", mgl::Texture3D::WOOD);
+    createTexture("floatingTexture3D", mgl::Texture3D::MARBLE);
+}
+
+void MyApp::createTexture(std::string name, mgl::Texture3D::Type type) {
+    mgl::Texture3D* Texture3D = new mgl::Texture3D();
+    Texture3D->generatePerlinNoiseTexture3(256, 256, 256, type);
+    mgl::TextureManager::getInstance().add(name, Texture3D);
 }
 
 ///////////////////////////////////////////////////////////////////////// SHADER
 
 void MyApp::createShaderPrograms() {
+    createShaderProgram("woodShader", "wood-vs.glsl", "wood-fs.glsl");
+    createShaderProgram("marbleShader", "marble-vs.glsl", "marble-fs.glsl");
+}
+
+void MyApp::createShaderProgram(std::string shaderName, std::string vsFile, std::string fsFile) {
+    mgl::Mesh* BaseMesh = mgl::MeshManager::getInstance().get("baseMesh");
+    mgl::Mesh* FloatingMesh = mgl::MeshManager::getInstance().get("floatingMesh");
+
     Shaders = new mgl::ShaderProgram();
-    Shaders->addShader(GL_VERTEX_SHADER, "cube-vs.glsl");
-    Shaders->addShader(GL_FRAGMENT_SHADER, "cube-fs.glsl");
+    Shaders->addShader(GL_VERTEX_SHADER, vsFile);
+    Shaders->addShader(GL_FRAGMENT_SHADER, fsFile);
 
     Shaders->addAttribute(mgl::POSITION_ATTRIBUTE, mgl::Mesh::POSITION);
     if (BaseMesh->hasNormals() && FloatingMesh->hasNormals()) {
@@ -155,15 +171,16 @@ void MyApp::createShaderPrograms() {
     }
 
     Shaders->addUniform(mgl::MODEL_MATRIX);
-    Shaders->addUniform(mgl::COLOR_UNIFORM);
     Shaders->addUniform(mgl::NORMAL_MATRIX);
     Shaders->addUniform(mgl::TEXTURE);
     Shaders->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
     Shaders->create();
 
+    mgl::ShaderManager::getInstance().add(shaderName, Shaders);
+
     ModelMatrixId = Shaders->Uniforms[mgl::MODEL_MATRIX].index;
     NormalMatrixId = Shaders->Uniforms[mgl::NORMAL_MATRIX].index;
-    ColorId = Shaders->Uniforms[mgl::COLOR_UNIFORM].index;
+    ColorId = Shaders->Uniforms[mgl::PRIMARY_COLOR_UNIFORM].index;
 }
 
 // common transformation matrixes
@@ -188,8 +205,11 @@ const glm::vec4 orangeColor = { 1.0f, 0.25f, 0.25f, 1.0f };
 const glm::vec4 paralelogramColor = { 1.0f, 0.608f, 0.153f, 1.0f };
 const glm::vec4 squareColor = { 0.0f, 0.6f, 0.0f, 1.0f };
 
-const glm::vec4 baseColor = { 0.62745f, 0.52941f, 0.52549f, 1.0f};
-const glm::vec4 floatingColor = {1.0f, 1.0f, 1.0f, 1.0f};
+const glm::vec4 basePrimaryColor = { 0.62745f, 0.52941f, 0.52549f, 1.0f};
+const glm::vec4 baseSecondaryColor = { 0.35686f, 0.30980f, 0.30980f, 1.0f};
+
+const glm::vec4 floatingPrimaryColor = {1.0f, 1.0f, 1.0f, 1.0f};
+const glm::vec4 floatingSecondaryColor = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 // animation
 // animation axis rotation
@@ -232,19 +252,22 @@ void MyApp::createScene() {
 
     // square
     mgl::SillouetteCallBack* callback = new mgl::SillouetteCallBack();
-    mgl::SceneNode* base = createNode(BaseMesh, basePosition, baseRotation, baseScale, baseColor, root);
+    mgl::SceneNode* base = createNode(mgl::MeshManager::getInstance().get("baseMesh"), basePosition, baseRotation, baseScale, root, mgl::ShaderManager::getInstance().get("woodShader"));
+    BaseTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("baseTexture3D"), BaseSampler);
     base->setTextureInfo(BaseTextureInfo);
 
     //mgl::SceneNode* baseSillouette = createNode(BaseMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, root);
     //baseSillouette->setCallBack(callback);
 
     // paralelogram
-    mgl::SceneNode* floating = createNode(FloatingMesh, floatingPosition, floatingRotation, floatingScale, floatingColor, base);
+    mgl::SceneNode* floating = createNode(mgl::MeshManager::getInstance().get("floatingMesh"), floatingPosition, floatingRotation, floatingScale, base, mgl::ShaderManager::getInstance().get("marbleShader"));
+    FloatingTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("floatingTexture3D"), BaseSampler);
+    floating->setTextureInfo(FloatingTextureInfo);
     //mgl::SceneNode* floatingSillouette = createNode(FloatingMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, floating);
     //floatingSillouette->setCallBack(callback);
 }
 
-mgl::SceneNode* MyApp::createNode(mgl::Mesh *mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, glm::vec4 color, mgl::SceneNode* parent) {
+mgl::SceneNode* MyApp::createNode(mgl::Mesh *mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent, mgl::ShaderProgram* shader) {
 
     mgl::SceneNode* node = new mgl::SceneNode(ModelMatrixId, NormalMatrixId, ColorId);
 
@@ -253,8 +276,7 @@ mgl::SceneNode* MyApp::createNode(mgl::Mesh *mesh, glm::vec3 position, glm::quat
     node->setPosition(position);
     node->setRotation(rotation);
     node->setScale(scale);
-    node->setColor(color);
-    node->setShaderProgram(Shaders);
+    node->setShaderProgram(shader);
     //SceneGraph->addRoot(node);
     parent->addChild(node);
 
@@ -280,6 +302,7 @@ void MyApp::drawScene(double elapsed) {
 
 void MyApp::initCallback(GLFWwindow* win) {
     createMeshes();
+    createTextures();
     createShaderPrograms();  // after mesh;
     createScene();
     createCameras();
@@ -295,8 +318,6 @@ void MyApp::displayCallback(GLFWwindow *win, double elapsed) {
     drawScene(elapsed); 
 }
 void MyApp::windowCloseCallback(GLFWwindow* win) {
-    delete BaseMesh;
-    delete FloatingMesh;
     delete OrbitCamera;
     delete Shaders;
     delete SceneGraph;

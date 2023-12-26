@@ -63,11 +63,10 @@ private:
 
 	Mesh* mesh;
 	ShaderProgram* shaderProgram;
+	// when getting the shader get these
 	GLint ModelMatrixId;
-	GLint ColorId;
 	GLint NormalMatrixId;
 	glm::mat4 NormalMatrix;
-	glm::vec4 Color;
 
 	SceneNode* parent;
 	std::vector<SceneNode*> children;
@@ -100,9 +99,6 @@ public:
 	const glm::quat getRotation();
 	void setScale(glm::vec3 scale);
 	const glm::vec3 getScale();
-
-	void setColor(glm::vec4 color);
-	glm::vec4 getColor();
 
 	void setShaderProgram(ShaderProgram* shaderProgram);
 	ShaderProgram* getShaderProgram();

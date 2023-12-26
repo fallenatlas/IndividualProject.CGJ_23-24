@@ -24,6 +24,7 @@
     <ClCompile Include="..\mgl\mglCamera.cpp" />
     <ClCompile Include="..\mgl\mglError.cpp" />
     <ClCompile Include="..\mgl\mglKeyState.cpp" />
+    <ClCompile Include="..\mgl\mglManager.cpp" />
     <ClCompile Include="..\mgl\mglMesh.cpp" />
     <ClCompile Include="..\mgl\mglOrbitCamera.cpp" />
     <ClCompile Include="..\mgl\mglPickingTexture.cpp" />
@@ -36,10 +37,6 @@
     <ClCompile Include="hello-3d-world.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cube-fs.glsl" />
-    <None Include="cube-vs.glsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\mgl\mgl.hpp" />
     <ClInclude Include="..\mgl\mglApp.hpp" />
     <ClInclude Include="..\mgl\mglCallBack.hpp" />
@@ -48,6 +45,7 @@
     <ClInclude Include="..\mgl\mglError.hpp" />
     <ClInclude Include="..\mgl\mglIDrawable.hpp" />
     <ClInclude Include="..\mgl\mglKeyState.hpp" />
+    <ClInclude Include="..\mgl\mglManager.hpp" />
     <ClInclude Include="..\mgl\mglMesh.hpp" />
     <ClInclude Include="..\mgl\mglOrbitCamera.hpp" />
     <ClInclude Include="..\mgl\mglPickingTexture.hpp" />
@@ -57,6 +55,12 @@
     <ClInclude Include="..\mgl\mglTexture.hpp" />
     <ClInclude Include="..\mgl\perlinNoise.hpp" />
     <ClInclude Include="..\mgl\stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="marble-fs.glsl" />
+    <None Include="marble-vs.glsl" />
+    <None Include="wood-fs.glsl" />
+    <None Include="wood-vs.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

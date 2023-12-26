@@ -115,6 +115,25 @@ double harmonicNoise(PerlinNoiseGenerator* perlinNoise, int numberOctaves, float
     return endNoise;
 }
 
+double harmonicNoise2(PerlinNoiseGenerator* perlinNoise, int numberOctaves, float b, float a, double x, double y, double z) {
+    double endNoise = 0;
+    float totalAmplitude = 0.0;
+
+    for (int i = 0; i < numberOctaves; ++i) {
+        float amplitude = glm::pow((float)a, (float)i);// 1 / 2 * i;
+        totalAmplitude += amplitude;
+    }
+
+    for (int i = 0; i < numberOctaves; ++i) {
+        float frequency = glm::pow((float)b, (float)i); //2 * i;
+        float amplitude = glm::pow((float)a, (float)i);// 1 / 2 * i; //0.7
+
+        endNoise += perlinNoise->noise(frequency * x, frequency * y, z) * amplitude / totalAmplitude;
+    }
+
+    return endNoise;
+}
+
 
 
 void Texture2D::generatePerlinNoiseTexture(const unsigned int height, const unsigned int width) {
@@ -271,5 +290,479 @@ void Texture2D::generatePerlinNoiseTexture(const unsigned int height, const unsi
     //delete[] noise;
 }
 
+void Texture3D::bind() { glBindTexture(GL_TEXTURE_3D, id); }
+
+void Texture3D::unbind() { glBindTexture(GL_TEXTURE_3D, 0); }
+
+void Texture3D::generatePerlinNoiseTexture(const unsigned int heighti, const unsigned int widthi, const unsigned int depthi) {
+    std::cout << "initiate" << std::endl;
+
+    GLubyte image[64][64][64];
+
+    int persistence, amplitude;
+    unsigned int height = 64;
+    unsigned int width = 64;
+    unsigned int depth = 64;
+
+    //static GLuint texName;
+    PerlinNoiseGenerator* perlinNoise = new PerlinNoiseGenerator();
+
+    for (int d = 0; d < depth; ++d) {
+        for (int i = 0; i < height; ++i) {
+            for (int j = 0; j < width; ++j) {
+                double x = (double)j / ((double)width);
+                double y = (double)i / ((double)height);
+                double z = (double)d / ((double)depth);
+
+                if (d == 100) {
+                    std::cout << "100" << std::endl;
+                }
+
+                //double n = perlinNoise->noise(10 * x, 10 * y, 0.8);
+
+                /*
+                double n = harmonicNoise(perlinNoise, 8, 2, 0.6, 2 * x, 2 * y); // 0.7
+                double normalizedN = (n + 1.0) / 2.0;
+
+                // marble
+                double xPeriod = 0.5; //defines repetition of marble lines in x direction 0.0
+                double yPeriod = 1.0; //defines repetition of marble lines in y direction 10.0
+                //turbPower = 0 ==> it becomes a normal sine pattern
+                double turbPower = 5.0; //makes twists 4.0
+                double turbSize = 32.0; //initial size of the turbulence
+
+                double xyValue = j * xPeriod / width + i * yPeriod / height + turbPower * normalizedN; // x and y
+                double sineValue = fabs(sin(xyValue * 3.14159));
+
+                if (sineValue >= -0.001 && sineValue < 0.1) sineValue += 0.05 * (1.0 - sineValue);
+                image[i][j] = (GLubyte)floor((sineValue > 0.0 && sineValue < 1.0 ? sineValue + sineValue * (1.0-sineValue) : sineValue) * 256);
+                */
+
+                //double cosValue = 255 * cos(i + n) * 0.5 + 0.5;
+                //double cosValue = 255 * cos(2 * x + normalizedN) * 0.5 + 0.5;
+
+                // wood
+                /*
+                double strechedNoise = harmonicNoise(perlinNoise, 8, 2, 0.7, 8 * x, 1 * y);
+                double normalizedSN = (strechedNoise + 1.0) / 2.0;
+                */
+                double xPeriod = 3.0; //defines repetition of marble lines in x direction
+                double yPeriod = 0.0; //defines repetition of marble lines in y direction
+                //turbPower = 0 ==> it becomes a normal sine pattern
+                double turbPower = 1.0; //makes twists
+                double turbSize = 32.0; //initial size of the turbulence
+                
+                double n = harmonicNoise2(perlinNoise, 4, 2, 0.45, 0.5 * x, 0.5 * y, z);
+                double normalizedN = (n + 1.0) / 2.0;
+                double xyValue = j * xPeriod / width + i * yPeriod / height + turbPower * normalizedN;
+                double zebraNoise = 256 * fabs(sin(xyValue * 3.14159));
+                
+                //n = perlinNoise->noise(x, y, 0.8);
+                //normalizedN = (n + 1.0) / 2.0;
+                n = 20 * normalizedN;
+                n = n - floor(n);
+                //n = turbPower * n;
+                
+                //double fineGrain = perlinNoise->noise(128 * x, 32 * y, 0.8);
+                double fineGrain = 2 * harmonicNoise2(perlinNoise, 10, 2, 0.9, 4 * x, 1 * y, z);
+                double normalizedFN = (fineGrain + 1.0) / 2.0;
+
+                double fineGrain3 = perlinNoise->noise(80 * x, 10 * y, 0.9);
+                double normalizedFN3 = (fineGrain3 + 1.0) / 2.0;
+
+                double fineGrain2 = perlinNoise->noise(256 * x, 256 * y, 0.8);
+                double normalizedFN2 = (fineGrain2 + 1.0) / 2.0;
+
+                //noise[i][j] = (unsigned char) floor(n * 255);
+
+                image[d][i][j] = (GLubyte)floor((1 - (normalizedFN * normalizedFN3) * normalizedFN2) * 256);
+                double thing = (1 - (normalizedFN * normalizedFN3)) * normalizedFN2;
+                double thing2 = (1 - (normalizedFN * normalizedFN3));
+                thing = thing > 0.2 ? 1.0 : thing;
+                thing2 = thing2 < 0.86 ? thing2 - (0.86 - thing2) * (0.0 - thing2) : thing2;
+                thing2 = thing2 < 0.86 ? 0.0 : thing2 - 1.0 * (1 - thing2);
+                //(sineValue > 0.0 && sineValue < 1.0 ? sineValue + sineValue * (1.0 - sineValue) : sineValue
+                image[d][i][j] = (GLubyte)floor((1 - thing2) * 255);
+                image[d][i][j] = (GLubyte)floor((n * normalizedFN * (1 - thing2)) * 256);
+
+                //image[i][j][1] = (unsigned char)floor(n * 255);
+                //image[i][j][2] = (unsigned char)floor(n * 255);
+
+                //std::cout << "value: " << floor(n * 255) << std::endl;
+            }
+        }
+    }
+
+    /*
+    for (unsigned int i = 0; i < height; ++i) {     // y
+        for (unsigned int j = 0; j < width; ++j) {  // x
+            double x = (double)j / ((double)width);
+            double y = (double)i / ((double)height);
+
+            // Typical Perlin noise
+            double n = perlinNoise->noise(10 * x, 10 * y, 0.8);
+
+            // Wood like structure
+            //n = 20 * pn.noise(x, y, 0.8);
+            //n = n - floor(n);
+
+            // Map the values to the [0, 255] interval, for simplicity we use
+            // tones of grey
+            noise[i][j] = floor(255 * n);
+        }
+    }
+    */
+
+    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_3D, id);
+
+    // Pré OpenGL v3.30 (still compatible with core)
+
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+    //                GL_LINEAR_MIPMAP_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, width, height, depth, 0, GL_RED,
+        GL_UNSIGNED_BYTE, image);
+    // syntax: glTexImage2D(target, level, internalformat, width, height, border,
+    // format, type, data)
+
+    glGenerateMipmap(GL_TEXTURE_3D);
+    glBindTexture(GL_TEXTURE_3D, 0);
+
+    std::cout << "finished setup" << std::endl;
+
+    //delete[] noise;
+}
+
+void Texture3D::generatePerlinNoiseTexture2(const unsigned int heighti, const unsigned int widthi, const unsigned int depthi) {
+
+    GLubyte image[64][64][64];
+
+    int persistence, amplitude;
+    unsigned int height = 256;
+    unsigned int width = 256;
+    unsigned int depth = 256;
+
+    //static GLuint texName;
+    /*
+    PerlinNoiseGenerator* perlinNoise = new PerlinNoiseGenerator();
+
+    for (int d = 0; d < depth; ++d) {
+        generatePerlingNoiseTextureSubLevel(perlinNoise, d);
+    }
+    */
+
+    /*
+    for (unsigned int i = 0; i < height; ++i) {     // y
+        for (unsigned int j = 0; j < width; ++j) {  // x
+            double x = (double)j / ((double)width);
+            double y = (double)i / ((double)height);
+
+            // Typical Perlin noise
+            double n = perlinNoise->noise(10 * x, 10 * y, 0.8);
+
+            // Wood like structure
+            //n = 20 * pn.noise(x, y, 0.8);
+            //n = n - floor(n);
+
+            // Map the values to the [0, 255] interval, for simplicity we use
+            // tones of grey
+            noise[i][j] = floor(255 * n);
+        }
+    }
+    */
+
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_3D, id);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, width, height, depth, 0, GL_RED,
+        GL_UNSIGNED_BYTE, 0);
+
+    PerlinNoiseGenerator* perlinNoise = new PerlinNoiseGenerator();
+
+    for (int d = 0; d < depth; ++d) {
+        generatePerlingNoiseTextureSubLevel(perlinNoise, d);
+    }
+
+    glGenerateMipmap(GL_TEXTURE_3D);
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
+
+void Texture3D::generatePerlingNoiseTextureSubLevel(PerlinNoiseGenerator* perlinNoise, unsigned int level) {
+
+    unsigned int height = 256;
+    unsigned int width = 256;
+    unsigned int depth = 256;
+    
+    GLubyte image[256][256] = { 0 };
+
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            double x = (double)j / ((double)width);
+            double y = (double)i / ((double)height);
+            double z = (double)level / ((double)depth);
+
+            //double n = perlinNoise->noise(10 * x, 10 * y, 0.8);
+
+            /*
+            double n = harmonicNoise(perlinNoise, 8, 2, 0.6, 2 * x, 2 * y); // 0.7
+            double normalizedN = (n + 1.0) / 2.0;
+
+            // marble
+            double xPeriod = 0.5; //defines repetition of marble lines in x direction 0.0
+            double yPeriod = 1.0; //defines repetition of marble lines in y direction 10.0
+            //turbPower = 0 ==> it becomes a normal sine pattern
+            double turbPower = 5.0; //makes twists 4.0
+            double turbSize = 32.0; //initial size of the turbulence
+
+            double xyValue = j * xPeriod / width + i * yPeriod / height + turbPower * normalizedN; // x and y
+            double sineValue = fabs(sin(xyValue * 3.14159));
+
+            if (sineValue >= -0.001 && sineValue < 0.1) sineValue += 0.05 * (1.0 - sineValue);
+            image[i][j] = (GLubyte)floor((sineValue > 0.0 && sineValue < 1.0 ? sineValue + sineValue * (1.0-sineValue) : sineValue) * 256);
+            */
+
+            //double cosValue = 255 * cos(i + n) * 0.5 + 0.5;
+            //double cosValue = 255 * cos(2 * x + normalizedN) * 0.5 + 0.5;
+
+            // wood
+            /*
+            double strechedNoise = harmonicNoise(perlinNoise, 8, 2, 0.7, 8 * x, 1 * y);
+            double normalizedSN = (strechedNoise + 1.0) / 2.0;
+            */
+            double xPeriod = 3.0; //defines repetition of marble lines in x direction
+            double yPeriod = 0.0; //defines repetition of marble lines in y direction
+            //turbPower = 0 ==> it becomes a normal sine pattern
+            double turbPower = 1.0; //makes twists
+            double turbSize = 32.0; //initial size of the turbulence
+
+            double n = harmonicNoise2(perlinNoise, 4, 2, 0.45, 0.5 * x, 0.5 * y, z);
+            double normalizedN = (n + 1.0) / 2.0;
+            double xyValue = j * xPeriod / width + i * yPeriod / height + turbPower * normalizedN;
+            double zebraNoise = 256 * fabs(sin(xyValue * 3.14159));
+
+            //n = perlinNoise->noise(x, y, 0.8);
+            //normalizedN = (n + 1.0) / 2.0;
+            n = 20 * normalizedN;
+            n = n - floor(n);
+            //n = turbPower * n;
+
+            //double fineGrain = perlinNoise->noise(128 * x, 32 * y, 0.8);
+            double fineGrain = 2 * harmonicNoise2(perlinNoise, 10, 2, 0.9, 1 * x, 4 * y, z);
+            double normalizedFN = (fineGrain + 1.0) / 2.0;
+
+            double fineGrain3 = perlinNoise->noise(10 * x, 80 * y, 0.9);
+            double normalizedFN3 = (fineGrain3 + 1.0) / 2.0;
+
+            double fineGrain2 = perlinNoise->noise(256 * x, 256 * y, 0.8);
+            double normalizedFN2 = (fineGrain2 + 1.0) / 2.0;
+
+            //noise[i][j] = (unsigned char) floor(n * 255);
+
+            image[i][j] = (GLubyte)floor((1 - (normalizedFN * normalizedFN3) * normalizedFN2) * 256);
+            double thing = (1 - (normalizedFN * normalizedFN3)) * normalizedFN2;
+            double thing2 = (1 - (normalizedFN * normalizedFN3));
+            thing = thing > 0.2 ? 1.0 : thing;
+            thing2 = thing2 < 0.86 ? thing2 - (0.86 - thing2) * (0.0 - thing2) : thing2;
+            thing2 = thing2 < 0.86 ? 0.0 : thing2 - 1.0 * (1 - thing2);
+            //(sineValue > 0.0 && sineValue < 1.0 ? sineValue + sineValue * (1.0 - sineValue) : sineValue
+            image[i][j] = (GLubyte)floor((1 - thing2) * 255);
+            image[i][j] = (GLubyte)floor((n * normalizedFN * (1 - thing2)) * 256);
+
+            //image[i][j][1] = (unsigned char)floor(n * 255);
+            //image[i][j][2] = (unsigned char)floor(n * 255);
+
+            //std::cout << "value: " << floor(n * 255) << std::endl;
+        }
+    }
+
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, level, width, height, 1, GL_RED, GL_UNSIGNED_BYTE, image);
+
+    /*
+    for (unsigned int i = 0; i < height; i++) {
+        delete[] image[i];
+    }
+    delete[] image;
+    */
+}
+
+void Texture3D::generatePerlinNoiseTexture3(unsigned int width, unsigned int height, unsigned int depth, Texture3D::Type type) {
+    //unsigned int height = 256;
+    //unsigned int width = 256;
+    //unsigned int depth = 256;
+
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_3D, id);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, width, height, depth, 0, GL_RED,
+        GL_UNSIGNED_BYTE, 0);
+
+    PerlinNoiseGenerator* perlinNoise = new PerlinNoiseGenerator();
+
+    if (type == WOOD) {
+        for (int d = 0; d < depth; ++d) {
+            generateWoodSublevel(perlinNoise, width, height, depth, d);
+        }
+    }
+    else if (type == MARBLE) {
+        for (int d = 0; d < depth; ++d) {
+            generateMarbleSublevel(perlinNoise, width, height, depth, d);
+        }
+    }
+
+    glGenerateMipmap(GL_TEXTURE_3D);
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
+//GLubyte image[256][256] = { 0 };
+//std::vector<std::vector<unsigned char>> image(256, std::vector<unsigned char>(256));
+//GLubyte** image;
+
+void Texture3D::generateWoodSublevel(PerlinNoiseGenerator* perlinNoise, unsigned int width, unsigned int height, unsigned int depth, unsigned int level) {
+    std::vector<GLubyte> image(height * width * sizeof(GLubyte), 0);
+
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            double x = (double)j / ((double)width);
+            double y = (double)i / ((double)height);
+            double z = (double)level / ((double)depth);
+
+            double xPeriod = 3.0; //defines repetition of marble lines in x direction
+            double yPeriod = 0.0; //defines repetition of marble lines in y direction
+            double turbPower = 1.0; //makes twists
+            double turbSize = 32.0; //initial size of the turbulence
+
+            double n = harmonicNoise2(perlinNoise, 4, 2, 0.45, 0.5 * x, 0.5 * y, z);
+            double normalizedN = (n + 1.0) / 2.0;
+            double xyValue = j * xPeriod / width + i * yPeriod / height + turbPower * normalizedN;
+            double zebraNoise = 256 * fabs(sin(xyValue * 3.14159));
+
+            n = 20 * normalizedN;
+            n = n - floor(n);
+
+            double fineGrain = 2 * harmonicNoise2(perlinNoise, 10, 2, 0.9, 1 * x, 4 * y, z);
+            double normalizedFN = (fineGrain + 1.0) / 2.0;
+
+            double fineGrain3 = perlinNoise->noise(10 * x, 80 * y, 0.9);
+            double normalizedFN3 = (fineGrain3 + 1.0) / 2.0;
+
+            double fineGrain2 = perlinNoise->noise(256 * x, 256 * y, 0.8);
+            double normalizedFN2 = (fineGrain2 + 1.0) / 2.0;
+
+            double thing = (1 - (normalizedFN * normalizedFN3)) * normalizedFN2;
+            double thing2 = (1 - (normalizedFN * normalizedFN3));
+            thing = thing > 0.2 ? 1.0 : thing;
+            thing2 = thing2 < 0.86 ? thing2 - (0.86 - thing2) * (0.0 - thing2) : thing2;
+            thing2 = thing2 < 0.86 ? 0.0 : thing2 - 1.0 * (1 - thing2);
+
+            //image[i][j] = (int)floor((n * normalizedFN * (1 - thing2)) * 256);
+            image[i * width + j] = (GLubyte)floor((n * normalizedFN * (1 - thing2)) * 256);
+        }
+    }
+
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, level, width, height, 1, GL_RED, GL_UNSIGNED_BYTE, (GLvoid*)image.data());
+    
+}
+
+void Texture3D::generateMarbleSublevel(PerlinNoiseGenerator* perlinNoise, unsigned int width, unsigned int height, unsigned int depth, unsigned int level) {
+    std::vector<GLubyte> image(height * width * sizeof(GLubyte), 0);
+
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            double x = (double)j / ((double)width);
+            double y = (double)i / ((double)height);
+            double z = (double)level / ((double)depth);
+
+            double n = harmonicNoise(perlinNoise, 8, 2, 0.6, 2 * x, 2 * y); // 0.7
+            double normalizedN = (n + 1.0) / 2.0;
+
+            // marble
+            double xPeriod = 0.5; //defines repetition of marble lines in x direction 0.0
+            double yPeriod = 1.0; //defines repetition of marble lines in y direction 10.0
+            //turbPower = 0 ==> it becomes a normal sine pattern
+            double turbPower = 5.0; //makes twists 4.0
+            double turbSize = 32.0; //initial size of the turbulence
+
+            double xyValue = j * xPeriod / width + i * yPeriod / height + turbPower * normalizedN; // x and y
+            double sineValue = fabs(sin(xyValue * 3.14159));
+
+            if (sineValue >= -0.001 && sineValue < 0.1) sineValue += 0.05 * (1.0 - sineValue);
+            image[i * width + j] = (GLubyte)floor((sineValue > 0.0 && sineValue < 1.0 ? sineValue + sineValue * (1.0 - sineValue) : sineValue) * 256);
+            
+
+            //image[i][j] = (int)floor((n * normalizedFN * (1 - thing2)) * 256);
+            //image[i * width + j] = (GLubyte)floor((n * normalizedFN * (1 - thing2)) * 256);
+        }
+    }
+
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, level, width, height, 1, GL_RED, GL_UNSIGNED_BYTE, (GLvoid*)image.data());
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace mgl
+
+//stencil_buffer 
+//GL_Stenci_tet
+
+/*
+look into zBuffer
+callback com index do objeto e app = > adiciona o
+backgroud e 0
+
+before draw:
+enable stencil
+glStencilFunc(always, index + 1, -1);
+op(keep, keep, replace)
+
+after draw:
+disable
+
+convert glfw mouse position to opengl -> glfw get mouse position -> window height - position
+
+glReadPixels -> stencil index
+
+std::map in manager
+*/
+
+
+
+
+
