@@ -37,6 +37,8 @@
     <ClCompile Include="hello-3d-world.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\mgl\json.hpp" />
+    <ClInclude Include="..\mgl\json_fwd.hpp" />
     <ClInclude Include="..\mgl\mgl.hpp" />
     <ClInclude Include="..\mgl\mglApp.hpp" />
     <ClInclude Include="..\mgl\mglCallBack.hpp" />

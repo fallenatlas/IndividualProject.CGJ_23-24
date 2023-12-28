@@ -37,19 +37,19 @@ class MyApp : public mgl::App {
   const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0;
   GLuint VaoId;
 
-  mgl::ShaderProgram *Shaders = nullptr;
+  //mgl::ShaderProgram *Shaders = nullptr;
   mgl::OrbitCamera* OrbitCamera = nullptr;
   GLint ModelMatrixId;
   GLint NormalMatrixId;
   GLint ColorId;
   mgl::SceneGraph* SceneGraph = nullptr;
 
-  mgl::Texture2D* BaseTexture = nullptr;
-  mgl::Texture3D* BaseTexture3D = nullptr;
-  mgl::Texture3D* FloatingTexture3D = nullptr;
+  //mgl::Texture2D* BaseTexture = nullptr;
+  //mgl::Texture3D* BaseTexture3D = nullptr;
+  //mgl::Texture3D* FloatingTexture3D = nullptr;
   mgl::NearestSampler* BaseSampler = nullptr;
-  mgl::TextureInfo* BaseTextureInfo = nullptr;
-  mgl::TextureInfo* FloatingTextureInfo = nullptr;
+  //mgl::TextureInfo* BaseTextureInfo = nullptr;
+  //mgl::TextureInfo* FloatingTextureInfo = nullptr;
 
   double previousMousePositionX = 0;
   double previousMousePositionY = 0;
@@ -62,7 +62,7 @@ class MyApp : public mgl::App {
   void createShaderProgram(std::string shaderName, std::string vsFile, std::string fsFile);
   void createCameras();
   void createScene();
-  mgl::SceneNode* createNode(mgl::Mesh* mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent, mgl::ShaderProgram* shader);
+  mgl::SceneNode* createNode(std::string mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent, std::string shader);
   void drawScene(double elapsed);
   void processAnimation(double elapsed);
 };
@@ -100,6 +100,14 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action,
 
     if (mgl::KeyState::getInstance().isKeyPressed(GLFW_KEY_P)) {
         OrbitCamera->switchProjection();
+    }
+
+    if (mgl::KeyState::getInstance().isKeyPressed(GLFW_KEY_K)) {
+        SceneGraph->serialize();
+    }
+
+    if (mgl::KeyState::getInstance().isKeyPressed(GLFW_KEY_L)) {
+        SceneGraph->deserialize();
     }
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -141,7 +149,8 @@ void MyApp::createTextures() {
 void MyApp::createTexture(std::string name, mgl::Texture3D::Type type) {
     mgl::Texture3D* Texture3D = new mgl::Texture3D();
     Texture3D->generatePerlinNoiseTexture3(256, 256, 256, type);
-    mgl::TextureManager::getInstance().add(name, Texture3D);
+    mgl::TextureInfo* TextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, Texture3D, BaseSampler);
+    mgl::TextureInfoManager::getInstance().add(name, TextureInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////// SHADER
@@ -155,32 +164,32 @@ void MyApp::createShaderProgram(std::string shaderName, std::string vsFile, std:
     mgl::Mesh* BaseMesh = mgl::MeshManager::getInstance().get("baseMesh");
     mgl::Mesh* FloatingMesh = mgl::MeshManager::getInstance().get("floatingMesh");
 
-    Shaders = new mgl::ShaderProgram();
-    Shaders->addShader(GL_VERTEX_SHADER, vsFile);
-    Shaders->addShader(GL_FRAGMENT_SHADER, fsFile);
+    mgl::ShaderProgram* Shader = new mgl::ShaderProgram();
+    Shader->addShader(GL_VERTEX_SHADER, vsFile);
+    Shader->addShader(GL_FRAGMENT_SHADER, fsFile);
 
-    Shaders->addAttribute(mgl::POSITION_ATTRIBUTE, mgl::Mesh::POSITION);
+    Shader->addAttribute(mgl::POSITION_ATTRIBUTE, mgl::Mesh::POSITION);
     if (BaseMesh->hasNormals() && FloatingMesh->hasNormals()) {
-        Shaders->addAttribute(mgl::NORMAL_ATTRIBUTE, mgl::Mesh::NORMAL);
+        Shader->addAttribute(mgl::NORMAL_ATTRIBUTE, mgl::Mesh::NORMAL);
     }
     if (BaseMesh->hasTexcoords() && FloatingMesh->hasTexcoords()) {
-        Shaders->addAttribute(mgl::TEXCOORD_ATTRIBUTE, mgl::Mesh::TEXCOORD);
+        Shader->addAttribute(mgl::TEXCOORD_ATTRIBUTE, mgl::Mesh::TEXCOORD);
     }
     if (BaseMesh->hasTangentsAndBitangents() && FloatingMesh->hasTangentsAndBitangents()) {
-        Shaders->addAttribute(mgl::TANGENT_ATTRIBUTE, mgl::Mesh::TANGENT);
+        Shader->addAttribute(mgl::TANGENT_ATTRIBUTE, mgl::Mesh::TANGENT);
     }
 
-    Shaders->addUniform(mgl::MODEL_MATRIX);
-    Shaders->addUniform(mgl::NORMAL_MATRIX);
-    Shaders->addUniform(mgl::TEXTURE);
-    Shaders->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
-    Shaders->create();
+    Shader->addUniform(mgl::MODEL_MATRIX);
+    Shader->addUniform(mgl::NORMAL_MATRIX);
+    Shader->addUniform(mgl::TEXTURE);
+    Shader->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
+    Shader->create();
 
-    mgl::ShaderManager::getInstance().add(shaderName, Shaders);
+    mgl::ShaderManager::getInstance().add(shaderName, Shader);
 
-    ModelMatrixId = Shaders->Uniforms[mgl::MODEL_MATRIX].index;
-    NormalMatrixId = Shaders->Uniforms[mgl::NORMAL_MATRIX].index;
-    ColorId = Shaders->Uniforms[mgl::PRIMARY_COLOR_UNIFORM].index;
+    ModelMatrixId = Shader->Uniforms[mgl::MODEL_MATRIX].index;
+    NormalMatrixId = Shader->Uniforms[mgl::NORMAL_MATRIX].index;
+    //ColorId = Shaders->Uniforms[mgl::PRIMARY_COLOR_UNIFORM].index;
 }
 
 // common transformation matrixes
@@ -246,37 +255,53 @@ const glm::vec3 floatingScale = { 1.0f, 1.3f, 1.0f };
 
 void MyApp::createScene() {
     SceneGraph = new mgl::SceneGraph();
+    SceneGraph->deserialize();
+    /*
     mgl::SceneNode* root = new mgl::SceneNode(ModelMatrixId, NormalMatrixId, ColorId);
+
+    std::cout << "before root" << std::endl;
 
     SceneGraph->addRoot(root);
 
+    std::cout << "before base" << std::endl;
+
     // square
-    mgl::SillouetteCallBack* callback = new mgl::SillouetteCallBack();
-    mgl::SceneNode* base = createNode(mgl::MeshManager::getInstance().get("baseMesh"), basePosition, baseRotation, baseScale, root, mgl::ShaderManager::getInstance().get("woodShader"));
-    BaseTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("baseTexture3D"), BaseSampler);
-    base->setTextureInfo(BaseTextureInfo);
+    //mgl::SillouetteCallBack* callback = new mgl::SillouetteCallBack();
+    mgl::SceneNode* base = createNode("baseMesh", basePosition, baseRotation, baseScale, root, "woodShader");
+    //BaseTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("baseTexture3D"), BaseSampler);
+    base->setTextureInfo("baseTexture3D");
+    std::cout << "created texture" << std::endl;
 
     //mgl::SceneNode* baseSillouette = createNode(BaseMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, root);
     //baseSillouette->setCallBack(callback);
 
+    std::cout << "before floating" << std::endl;
     // paralelogram
-    mgl::SceneNode* floating = createNode(mgl::MeshManager::getInstance().get("floatingMesh"), floatingPosition, floatingRotation, floatingScale, base, mgl::ShaderManager::getInstance().get("marbleShader"));
-    FloatingTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("floatingTexture3D"), BaseSampler);
-    floating->setTextureInfo(FloatingTextureInfo);
+    mgl::SceneNode* floating = createNode("floatingMesh", floatingPosition, floatingRotation, floatingScale, base, "marbleShader");
+    //FloatingTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("floatingTexture3D"), BaseSampler);
+    floating->setTextureInfo("floatingTexture3D");
     //mgl::SceneNode* floatingSillouette = createNode(FloatingMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, floating);
     //floatingSillouette->setCallBack(callback);
+    std::cout << "finished" << std::endl;
+    */
 }
 
-mgl::SceneNode* MyApp::createNode(mgl::Mesh *mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent, mgl::ShaderProgram* shader) {
+mgl::SceneNode* MyApp::createNode(std::string mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent,std::string shader) {
 
     mgl::SceneNode* node = new mgl::SceneNode(ModelMatrixId, NormalMatrixId, ColorId);
+    std::cout << "created node" << std::endl;
 
     //We are creating a root node (only happens once)
     node->setMesh(mesh);
+    std::cout << "created mesh" << std::endl;
     node->setPosition(position);
+    std::cout << "created position" << std::endl;
     node->setRotation(rotation);
+    std::cout << "created rotation" << std::endl;
     node->setScale(scale);
+    std::cout << "created scale" << std::endl;
     node->setShaderProgram(shader);
+    std::cout << "created shader" << std::endl;
     //SceneGraph->addRoot(node);
     parent->addChild(node);
 
@@ -319,7 +344,7 @@ void MyApp::displayCallback(GLFWwindow *win, double elapsed) {
 }
 void MyApp::windowCloseCallback(GLFWwindow* win) {
     delete OrbitCamera;
-    delete Shaders;
+    //delete Shaders;
     delete SceneGraph;
 }
 

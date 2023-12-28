@@ -121,8 +121,9 @@ T Manager<T>::get(std::string key) {
     }
 
     template class Manager<ShaderProgram*>;
-    template class Manager<Texture*>;
+    template class Manager<TextureInfo*>;
     template class Manager<Mesh*>;
+    template class Manager<CallBack*>;
 
 ////////////////////////////////////////////////////////////////////////////////
 }  // namespace mgl

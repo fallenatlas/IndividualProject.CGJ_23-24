@@ -20,6 +20,7 @@
 #include "mglMesh.hpp"
 #include "mglShader.hpp"
 #include "mglTexture.hpp"
+#include "mglCallBack.hpp"
 
 namespace mgl {
 
@@ -115,8 +116,9 @@ public:
     //class ShaderManager : public Manager<ShaderProgram*> {};
 
     using ShaderManager = Manager<ShaderProgram*>;
-    using TextureManager = Manager<Texture*>;
+    using TextureInfoManager = Manager<TextureInfo*>;
     using MeshManager = Manager<Mesh*>;
+    using CallbackManager = Manager<CallBack*>;
 
 ////////////////////////////////////////////////////////////////////////////////
 }  // namespace mgl

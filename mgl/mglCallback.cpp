@@ -22,4 +22,12 @@ namespace mgl {
         glFrontFace(GL_CCW);
     }
 
+    void StencilCallback::beforeDraw() {
+
+    }
+
+    void StencilCallback::afterDraw() {
+
+    }
+
 }

@@ -11,7 +11,7 @@
 
 namespace mgl {
 
-	class Callback;
+	class CallBack;
 
 	class CallBack {
 	public:
@@ -20,6 +20,12 @@ namespace mgl {
 	};
 
 	class SillouetteCallBack : public CallBack {
+	public:
+		void beforeDraw() override;
+		void afterDraw() override;
+	};
+
+	class StencilCallback : public CallBack {
 	public:
 		void beforeDraw() override;
 		void afterDraw() override;
