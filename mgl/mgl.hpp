@@ -25,5 +25,6 @@
 #include "./mglTexture.hpp"
 #include "./mglSampler.hpp"
 #include "./mglManager.hpp"
+#include "./mglSillouette.hpp"
 
 #endif /* MGL_HPP */

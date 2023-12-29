@@ -124,6 +124,7 @@ T Manager<T>::get(std::string key) {
     template class Manager<TextureInfo*>;
     template class Manager<Mesh*>;
     template class Manager<CallBack*>;
+    template class Manager<SillouetteInfo*>;
 
 ////////////////////////////////////////////////////////////////////////////////
 }  // namespace mgl

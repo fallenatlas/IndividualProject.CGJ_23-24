@@ -38,7 +38,7 @@ namespace mgl
 
 	void SceneGraph::renderScene(double elapsed) {
 		camera->updateRotation(elapsed);
-		root->draw();
+		root->update(elapsed);
 	}
 
 	void SceneGraph::drawNode(SceneNode* node) {
@@ -60,25 +60,35 @@ namespace mgl
 		json node_json;
 		i >> node_json;
 
-		SceneNode* root = new SceneNode(0, 0, 0);
+		SceneNode* root = new SceneNode(0);
 
 		root->deserialize(node_json);
 
 		addRoot(root);
 	}
 
+	SceneNode* SceneGraph::getNode(int nodeId) {
+		return root->getNode(nodeId);
+	}
+
 	///////////////////////////////////////////////////////////////////////// SceneNode
-	SceneNode::SceneNode(GLint modelMatrixId, GLint normalMatrixId, GLint colorId) {
-		active = true;
+	SceneNode::SceneNode(int nodeId) {
+		id = nodeId;
+		selected = false;
 		ModelMatrix = glm::mat4(1.0f);
 		Position = { 0.0f, 0.0f, 0.0f };
 		Rotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 		Scale = { 1.0f, 1.0f, 1.0f };
+
+		frameMovement = { 0.0f, 0.0f, 0.0f };
+		frameRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+
 		//ModelMatrixId = modelMatrixId;
 		//NormalMatrixId = normalMatrixId;
 		mesh = nullptr;
 		shaderProgram = nullptr;
 		callback = nullptr;
+		sillouetteInfo = nullptr;
 
 		parent = nullptr;
 		children = std::vector<SceneNode*>();
@@ -130,6 +140,11 @@ namespace mgl
 		return Rotation;
 	}
 
+	const glm::quat SceneNode::getGlobalRotation() {
+		glm::quat parentGlobalRotation = parent ? parent->getGlobalRotation() : glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));;
+		return parentGlobalRotation * getRotation();
+	}
+
 	void SceneNode::setScale(glm::vec3 scale) {
 		Scale = scale;
 	}
@@ -146,12 +161,6 @@ namespace mgl
 		return NormalMatrix;
 	}
 
-	/*
-	void SceneNode::setMesh(Mesh* mesh) {
-		this->mesh = mesh;
-	}
-	*/
-
 	Mesh* SceneNode::getMesh() {
 		return mesh;
 	}
@@ -165,14 +174,6 @@ namespace mgl
 	std::string SceneNode::getMeshName() {
 		return meshName;
 	}
-
-	/*
-	void SceneNode::setShaderProgram(ShaderProgram* shaderProgram) {
-		this->shaderProgram = shaderProgram;
-		ModelMatrixId = this->shaderProgram->Uniforms[mgl::MODEL_MATRIX].index;
-		NormalMatrixId = this->shaderProgram->Uniforms[mgl::NORMAL_MATRIX].index;
-	}
-	*/
 
 	ShaderProgram* SceneNode::getShaderProgram() {
 		return shaderProgram;
@@ -208,22 +209,41 @@ namespace mgl
 		return parent;
 	}
 
-	void SceneNode::setCallBack(CallBack* callback) {
-		this->callback = callback;
+	void SceneNode::setCallBack(std::string callbackName) {
+		this->callbackName = callbackName;
+		this->callback = CallbackManager::getInstance().get(callbackName);
 	}
 
 	CallBack* SceneNode::getCallBack() {
 		return callback;
 	}
 
+	std::string SceneNode::getCallBackName() {
+		return callbackName;
+	}
+
+	void SceneNode::update(double elapsed) {
+		applyFrameTransformations(elapsed);
+		draw();
+
+		// draw children
+		for (auto child : children) {
+			child->update(elapsed);
+		}
+	}
+
 	void SceneNode::draw() {
 		if (callback) {
-			callback->beforeDraw();
+			callback->beforeDraw(id);
 		}
 
 		// if (shaderProgram)
 		
 		if (mesh) {
+			// set stencil to write this object id
+			glStencilFunc(GL_ALWAYS, static_cast<GLint>(id), 0xFF);
+			glStencilMask(0xFF);
+
 			shaderProgram->bind();
 
 			if (textureInfo) {
@@ -241,19 +261,89 @@ namespace mgl
 		}
 
 		if (callback) {
-			callback->afterDraw();
+			callback->afterDraw(id);
+		}
+
+		if (sillouetteInfo && selected) {
+			drawSillouette();
 		}
 
 		// draw children
+		//for (auto child : children) {
+		//	child->draw();
+		//}
+	}
+
+	SceneNode* SceneNode::getNode(int nodeId) {
+		if (id == nodeId) return this;
 		for (auto child : children) {
-			child->draw();
+			SceneNode* node = child->getNode(nodeId);
+			if (node != nullptr) return node;
 		}
+		return nullptr;
+	}
+
+	void SceneNode::setSillouetteInfo(std::string sillouetteInfoName) {
+		this->sillouetteInfoName = sillouetteInfoName;
+		this->sillouetteInfo = SillouetteInfoManager::getInstance().get(sillouetteInfoName);
+	}
+
+	SillouetteInfo* SceneNode::getSillouetteInfo() {
+		return sillouetteInfo;
+	}
+
+	void SceneNode::isSelected(bool value) {
+		selected = value;
+
+		for (auto child : children) {
+			child->isSelected(value);
+		}
+	}
+
+	void SceneNode::addFrameMovement(glm::vec3 movement) {
+		frameMovement += movement;
+	}
+
+	void SceneNode::addFrameRotation(glm::quat rotation) {
+		frameRotation = rotation * frameRotation;
+	}
+
+	void SceneNode::applyFrameTransformations(double elapsed) {
+		Position = Position + (frameMovement * (float)elapsed);
+
+		glm::quat targetRotation = (frameRotation) * Rotation;
+		Rotation = glm::slerp(Rotation, targetRotation, (float)elapsed);
+
+		frameMovement = { 0.0f, 0.0f, 0.0f };
+		frameRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	}
+
+	void SceneNode::drawSillouette() {
+
+		if (sillouetteInfo->callback) {
+			sillouetteInfo->callback->beforeDraw(id);
+		}
+
+		if (mesh && sillouetteInfo->shaderProgram) {
+			sillouetteInfo->shaderProgram->bind();
+
+			const glm::mat4 sillouetteMatrix = ModelMatrix * glm::scale(glm::vec3(1.05f, 1.05f, 1.05f));
+			glUniformMatrix4fv(sillouetteInfo->shaderProgram->Uniforms[mgl::MODEL_MATRIX].index, 1, GL_FALSE, glm::value_ptr(sillouetteMatrix));
+
+			mesh->draw();
+
+			sillouetteInfo->shaderProgram->unbind();
+		}
+
+		if (sillouetteInfo->callback) {
+			sillouetteInfo->callback->afterDraw(id);
+		}
+
 	}
 
 	json SceneNode::serialize() {
 		json node_json;
 
-		node_json["active"] = active;
 		node_json["ModelMatrix"] = glm::to_string(ModelMatrix);
 		node_json["Position"] = glm::to_string(Position);
 		node_json["Rotation"] = glm::to_string(Rotation);
@@ -262,22 +352,18 @@ namespace mgl
 		node_json["Shader"] = shaderProgramName;
 		node_json["Callback"] = callbackName;
 		node_json["Texture"] = textureInfoName;
+		node_json["Sillouette"] = sillouetteInfoName;
 
 		std::cout << glm::to_string(Position) << std::endl;
 		std::cout << glm::to_string(Rotation) << std::endl;
 		json node_children_json;
 
-		int size = children.size();
-		//node_children_json["size"] = size;
 		for (auto child : children) {
-			node_children_json[std::to_string(--size)] = child->serialize();
+			node_children_json[std::to_string(child->id)] = child->serialize();
 		}
 		node_json["Children"] = node_children_json;
 
 		return node_json;
-
-		//SceneNode* parent;
-		//std::vector<SceneNode*> children;
 	}
 
 	glm::vec3 deserialize_vec3(std::string str) {
@@ -329,12 +415,9 @@ namespace mgl
 		str.erase(std::remove(str.begin(), str.end(), ' '), str.end()); // delete spaces
 		str.erase(std::remove(str.begin(), str.end(), ')'), str.end()); // delete ending ')'
 
-		std::cout << str << std::endl;
-
 		while ((pos = str.find(delimiter)) != std::string::npos) {
 			token = str.substr(0, pos);
 			mat[col][row] = std::stof(token);
-			std::cout << col << row <<  token << std::endl;
 			str.erase(0, pos + delimiter.length());
 			row++;
 			if (row == 4) {
@@ -344,7 +427,6 @@ namespace mgl
 		}
 
 		mat[col][row] = std::stof(str);
-		std::cout << glm::to_string(mat) << std::endl;
 
 		return mat;
 	}
@@ -376,21 +458,17 @@ namespace mgl
 		while ((pos = str.find(delimiter)) != std::string::npos) {
 			token = str.substr(0, pos);
 			vec[i] = std::stof(token);
-			std::cout << token << std::endl;
 			str.erase(0, pos + delimiter.length());
 			i++;
 		}
 
 		vec[i] = std::stof(str);
 		glm::quat quat(number, vec);
-		std::cout << glm::to_string(quat) << std::endl;
 
-		return vec;
+		return quat;
 	}
 
 	void SceneNode::deserialize(json node_json) {
-
-		active = node_json["active"].template get<bool>();
 
 		ModelMatrix = deserialize_mat4(node_json["ModelMatrix"].template get<std::string>());
 
@@ -401,47 +479,27 @@ namespace mgl
 		Scale = deserialize_vec3(node_json["Scale"].template get<std::string>());
 		
 		setMesh(node_json["Mesh"].template get<std::string>());
-
-		std::cout << "after mesh" << std::endl;
 		
 		setShaderProgram(node_json["Shader"].template get<std::string>());
 
-		std::cout << "after shader" << std::endl;
-
-		//callbackName = node_json["Callback"].template get<std::string>();
-		//setCallBack()
+		setCallBack(node_json["Callback"].template get<std::string>());
 		
 		setTextureInfo(node_json["Texture"].template get<std::string>());
 
-		std::cout << "after texture" << std::endl;
+		setSillouetteInfo(node_json["Sillouette"].template get<std::string>());
 
 		json children = node_json["Children"];
 
-		//std::cout << children.dump() << std::endl;
-
 		for (auto& el : children.items()) {
 			std::cout << el.key() << std::endl;
-			//if (stoi(el.key()) == 0) {
-				SceneNode* child = new SceneNode(0, 0, 0);
+			SceneNode* child = new SceneNode(stoi(el.key()));
 
-				std::cout << el.key() << std::endl;
+			std::cout << el.key() << std::endl;
 
-				child->deserialize(el.value());
+			child->deserialize(el.value());
 
-				//std::cout << el.key() << " : " << el.value() << "\n";
-
-				addChild(child);
-			//}
+			addChild(child);
 		}
-
-		std::cout << "after children" << std::endl;
-
-
-		// vai buscar as suas cenas
-		// for children:
-		//  create node
-		//  call deserialize for node
-		//
 	}
 
 	

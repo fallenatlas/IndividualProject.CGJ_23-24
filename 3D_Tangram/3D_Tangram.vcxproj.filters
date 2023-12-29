@@ -63,6 +63,9 @@
     <ClCompile Include="..\mgl\mglManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\mgl\mglSillouette.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\mgl\mgl.hpp">
@@ -125,6 +128,9 @@
     <ClInclude Include="..\mgl\json_fwd.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\mgl\mglSillouette.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="marble-fs.glsl">
@@ -137,6 +143,12 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="wood-vs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="color-fs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="color-vs.glsl">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

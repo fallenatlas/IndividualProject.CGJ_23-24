@@ -31,6 +31,7 @@
     <ClCompile Include="..\mgl\mglSampler.cpp" />
     <ClCompile Include="..\mgl\mglScenegraph.cpp" />
     <ClCompile Include="..\mgl\mglShader.cpp" />
+    <ClCompile Include="..\mgl\mglSillouette.cpp" />
     <ClCompile Include="..\mgl\mglTexture.cpp" />
     <ClCompile Include="..\mgl\perlinNoise.cpp" />
     <ClCompile Include="..\mgl\stb_image.cpp" />
@@ -54,11 +55,14 @@
     <ClInclude Include="..\mgl\mglSampler.hpp" />
     <ClInclude Include="..\mgl\mglScenegraph.hpp" />
     <ClInclude Include="..\mgl\mglShader.hpp" />
+    <ClInclude Include="..\mgl\mglSillouette.hpp" />
     <ClInclude Include="..\mgl\mglTexture.hpp" />
     <ClInclude Include="..\mgl\perlinNoise.hpp" />
     <ClInclude Include="..\mgl\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="color-fs.glsl" />
+    <None Include="color-vs.glsl" />
     <None Include="marble-fs.glsl" />
     <None Include="marble-vs.glsl" />
     <None Include="wood-fs.glsl" />

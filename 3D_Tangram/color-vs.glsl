@@ -1,8 +1,6 @@
 #version 330 core
 
-in vec4 inPosition;
-in vec4 inColor;
-out vec4 exColor;
+in vec3 inPosition;
 
 uniform mat4 ModelMatrix;
 
@@ -12,6 +10,5 @@ uniform Camera {
 };
 
 void main(void) {
-  gl_Position = ProjectionMatrix * ViewMatrix * ModelMatrix * inPosition;
-  exColor = inColor;
+  gl_Position = ProjectionMatrix * ViewMatrix * ModelMatrix * vec4(inPosition, 1.0);
 }

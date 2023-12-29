@@ -21,6 +21,7 @@
 #include "mglShader.hpp"
 #include "mglTexture.hpp"
 #include "mglCallBack.hpp"
+#include "mglSillouette.hpp"
 
 namespace mgl {
 
@@ -119,6 +120,7 @@ public:
     using TextureInfoManager = Manager<TextureInfo*>;
     using MeshManager = Manager<Mesh*>;
     using CallbackManager = Manager<CallBack*>;
+    using SillouetteInfoManager = Manager<SillouetteInfo*>;
 
 ////////////////////////////////////////////////////////////////////////////////
 }  // namespace mgl

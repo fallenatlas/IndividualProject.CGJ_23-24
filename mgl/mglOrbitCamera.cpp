@@ -22,7 +22,7 @@ OrbitCamera::~OrbitCamera() {}
 void OrbitCamera::updateRotation(double elapsed) {
 	glm::vec3 direction = glm::normalize(position - focusPoint);
 
-	glm::vec3 side = glm::normalize(glm::cross(direction, up));
+	side = glm::normalize(glm::cross(direction, up));
 	up = glm::cross(side, direction);
 	
 	//compute pitch quaternion
@@ -87,6 +87,14 @@ void OrbitCamera::setProjectionPerspective() {
 void OrbitCamera::setProjectionOrthographic() {
 	const glm::mat4 ortho = glm::ortho(-2.0f * ratio, 2.0f * ratio, -2.0f * 4.0f / 3.0f, 2.0f * 4.0f / 3.0f, 1.0f, 40.0f);
 	updateProjectionMatrix(ortho);
+}
+
+glm::vec3 OrbitCamera::getUpVector() {
+	return up;
+}
+
+glm::vec3 OrbitCamera::getSideVector() {
+	return side;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

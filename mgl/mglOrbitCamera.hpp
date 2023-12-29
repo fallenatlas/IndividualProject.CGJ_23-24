@@ -25,6 +25,7 @@ class OrbitCamera;
 class OrbitCamera : public Camera {
  private:
 	 glm::vec3 up;
+	 glm::vec3 side;
 
 	 glm::vec3 position;
 	 glm::vec3 focusPoint;
@@ -47,6 +48,8 @@ class OrbitCamera : public Camera {
   void switchProjection();
   void setProjectionPerspective();
   void setProjectionOrthographic();
+  glm::vec3 getUpVector();
+  glm::vec3 getSideVector();
 };
 
 ////////////////////////////////////////////////////////////////////////////////

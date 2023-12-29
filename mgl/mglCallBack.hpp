@@ -15,20 +15,20 @@ namespace mgl {
 
 	class CallBack {
 	public:
-		virtual void beforeDraw() = 0;
-		virtual void afterDraw() = 0;
+		virtual void beforeDraw(int id) = 0;
+		virtual void afterDraw(int id) = 0;
 	};
 
 	class SillouetteCallBack : public CallBack {
 	public:
-		void beforeDraw() override;
-		void afterDraw() override;
+		void beforeDraw(int id) override;
+		void afterDraw(int id) override;
 	};
 
-	class StencilCallback : public CallBack {
+	class StencilCallBack : public CallBack {
 	public:
-		void beforeDraw() override;
-		void afterDraw() override;
+		void beforeDraw(int id) override;
+		void afterDraw(int id) override;
 	};
 
 }
