@@ -37,19 +37,10 @@ class MyApp : public mgl::App {
   const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0, UBO_BP_LIGHT = 1;
   GLuint VaoId;
 
-  //mgl::ShaderProgram *Shaders = nullptr;
   mgl::OrbitCamera* OrbitCamera = nullptr;
-  //GLint ModelMatrixId;
-  //GLint NormalMatrixId;
-  //GLint ColorId;
   mgl::SceneGraph* SceneGraph = nullptr;
 
-  //mgl::Texture2D* BaseTexture = nullptr;
-  //mgl::Texture3D* BaseTexture3D = nullptr;
-  //mgl::Texture3D* FloatingTexture3D = nullptr;
   mgl::NearestSampler* BaseSampler = nullptr;
-  //mgl::TextureInfo* BaseTextureInfo = nullptr;
-  //mgl::TextureInfo* FloatingTextureInfo = nullptr;
 
   static constexpr std::uint8_t backgroundIndex = 0xFF;
   std::uint8_t hoveredIndex = backgroundIndex;
@@ -286,8 +277,11 @@ void MyApp::createTextures() {
 
 void MyApp::createTexture(std::string name, mgl::Texture3D::Type type) {
     mgl::Texture3D* Texture3D = new mgl::Texture3D();
+
+    // If the app is failing to load due to memory or its taking too long to start, reduce the texture resolution
     Texture3D->generatePerlinNoiseTexture3(256, 256, 256, type);
     //Texture3D->generatePerlinNoiseTexture3(32, 32, 32, type);
+
     mgl::TextureInfo* TextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, Texture3D, BaseSampler);
     mgl::TextureInfoManager::getInstance().add(name, TextureInfo);
 }
@@ -327,17 +321,11 @@ void MyApp::createShaderProgram(std::string shaderName, std::string vsFile, std:
     }
 
     Shader->addUniform(mgl::MODEL_MATRIX);
-    //Shader->addUniform(mgl::NORMAL_MATRIX);
-    //Shader->addUniform(mgl::TEXTURE);
     Shader->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
     Shader->addUniformBlock(mgl::LIGHT_BLOCK, UBO_BP_LIGHT);
     Shader->create();
 
     mgl::ShaderManager::getInstance().add(shaderName, Shader);
-
-    //ModelMatrixId = Shader->Uniforms[mgl::MODEL_MATRIX].index;
-    //NormalMatrixId = Shader->Uniforms[mgl::NORMAL_MATRIX].index;
-    //ColorId = Shaders->Uniforms[mgl::PRIMARY_COLOR_UNIFORM].index;
 }
 
 void MyApp::createCallBacks() {
@@ -360,59 +348,7 @@ void MyApp::createSillouetteInfo(std::string name, glm::vec3 scale) {
     mgl::SillouetteInfoManager::getInstance().add(name, sillouetteInfo);
 }
 
-// common transformation matrixes
-// scale
-const glm::mat4 scaleUp = glm::scale(glm::vec3(1.416f, 1.0f, 1.416f));
-
-// model matrixes
-const glm::mat4 squareMM = glm::translate(glm::vec3(-2.0f * 1.416f * 1.416f, 0.0f, 0.0f)) * glm::rotate(glm::radians(135.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::mat4 paralelogramMM = glm::rotate(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::mat4 cyanMM = glm::translate(glm::vec3(-2.0f, 0.0f, 0.0f)) * glm::translate(glm::vec3(-2.0f * 1.416f * 1.416f, 0.0f, 2.0f * 1.416f * 1.416f));
-const glm::mat4 orangeMM = glm::translate(glm::vec3(-2.0f * 1.416f * 1.416f, 0.0f, -1.0f * 1.416f * 1.416f)) * glm::rotate(glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::mat4 purpleMM = scaleUp;
-const glm::mat4 blueMM = scaleUp * scaleUp * glm::translate(glm::vec3(-2.0f, 0.0f, -2.0f)) * glm::rotate(glm::radians(-90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::mat4 magentaMM = scaleUp * scaleUp * glm::rotate(glm::radians(180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-// colors
-const glm::vec4 purpleColor = { 0.451f, 0.247f, 0.800f, 1.0f };
-const glm::vec4 blueColor = { 0.0f, 0.0f, 1.0f, 1.0f };
-const glm::vec4 magentaColor = { 0.808f, 0.172f, 0.416f, 1.0f };
-const glm::vec4 aquaColor = { 0.0f, 0.6f, 0.6f, 1.0f };
-const glm::vec4 orangeColor = { 1.0f, 0.25f, 0.25f, 1.0f };
-const glm::vec4 paralelogramColor = { 1.0f, 0.608f, 0.153f, 1.0f };
-const glm::vec4 squareColor = { 0.0f, 0.6f, 0.0f, 1.0f };
-
-const glm::vec4 basePrimaryColor = { 0.62745f, 0.52941f, 0.52549f, 1.0f};
-const glm::vec4 baseSecondaryColor = { 0.35686f, 0.30980f, 0.30980f, 1.0f};
-
-const glm::vec4 floatingPrimaryColor = {1.0f, 1.0f, 1.0f, 1.0f};
-const glm::vec4 floatingSecondaryColor = { 0.2f, 0.2f, 0.2f, 1.0f };
-
-// animation
-// animation axis rotation
-const glm::quat zAxisRotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-// animation box rotation
-const glm::quat zeroBoxRotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::quat squareBoxRotation = glm::angleAxis(glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::quat paralelogramBoxRotation = glm::angleAxis(glm::radians(-135.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::quat cyanBoxRotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::quat orangeBoxRotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-const glm::quat purpleBoxRotation = glm::angleAxis(glm::radians(-135.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-// animation box translation
-const glm::vec3 paralelogramBoxTranslation = glm::vec3(-4.0f, 0.0f, -2.0f);
-const glm::vec3 cyanBoxTranslation = glm::vec3(2.0f, 0.0f, 0.0f);
-const glm::vec3 orangeBoxTranslation = glm::vec3(-2.0f, 0.0f, 2.0f);
-const glm::vec3 purpleBoxTranslation = glm::vec3(-6.0f, 0.0f, -2.0f);
-
-// animation translation up
-const glm::vec3 translationUp = glm::vec3(-4.0f, 0.0f, 0.0f);
-
-
-const glm::mat4 baseMM = glm::mat4(1.0f);
-const glm::mat4 floatingMM = glm::translate(glm::vec3(0.0f, 1.3f, 0.0f)) * glm::scale(glm::vec3(1.0f, 1.3f, 1.0f));
-
+// object transformation constants
 const glm::vec3 basePosition = { 0.0f, 0.0f, 0.0f }; //-0.207143
 const glm::quat baseRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 const glm::vec3 baseScale = { 1.0f, 1.0f, 1.0f };
@@ -428,78 +364,45 @@ const glm::vec3 lightScale = { 0.2f, 0.2f, 0.2f };
 void MyApp::createScene() {
     int nodeId = 0;
     SceneGraph = new mgl::SceneGraph();
+
+    // comment to disable loading from file
     SceneGraph->deserialize();
     
+    // uncomment to enable loading from app, this is where you can add things to the scene
     /*
     mgl::SceneNode* root = new mgl::SceneNode(nodeId++);
-
-    std::cout << "before root" << std::endl;
-
     SceneGraph->addRoot(root);
 
-    std::cout << "before base" << std::endl;
-
-    //mgl::SceneNode* light = createNode(nodeId++, "cubeMesh", lightPosition, lightRotation, lightScale, root, "lightShader");
-    //FloatingTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("floatingTexture3D"), BaseSampler);
-    //light->setSillouetteInfo("defaultSillouetteInfo");
-
+    // create the light node
     mgl::SceneNode* light = new mgl::PointLightNode(nodeId++, UBO_BP_LIGHT);
-
-    //We are creating a root node (only happens once)
     light->setMesh("cubeMesh");
     light->setPosition(lightPosition);
     light->setRotation(lightRotation);
     light->setScale(lightScale);
     light->setShaderProgram("lightShader");
-    //SceneGraph->addRoot(node);
     root->addChild(light);
     light->setSillouetteInfo("defaultSillouetteInfo");
 
-
-
-    //mgl::SceneNode* floatingSillouette = createNode(FloatingMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, floating);
-    //floatingSillouette->setCallBack(callback);
-
-    // square
-    //mgl::SillouetteCallBack* callback = new mgl::SillouetteCallBack();
+    // create the wood base object
     mgl::SceneNode* base = createNode(nodeId++, "baseMesh", basePosition, baseRotation, baseScale, root, "woodShader");
-    //BaseTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("baseTexture3D"), BaseSampler);
     base->setTextureInfo("baseTexture3D");
     base->setSillouetteInfo("baseSillouetteInfo");
-    std::cout << "created texture" << std::endl;
 
-    //mgl::SceneNode* baseSillouette = createNode(BaseMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, root);
-    //baseSillouette->setCallBack(callback);
-
-    std::cout << "before floating" << std::endl;
-    // paralelogram
+    // create the marble top object
     mgl::SceneNode* floating = createNode(nodeId++, "floatingMesh", floatingPosition, floatingRotation, floatingScale, base, "marbleShader");
-    //FloatingTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("floatingTexture3D"), BaseSampler);
     floating->setTextureInfo("floatingTexture3D");
     floating->setSillouetteInfo("floatingSillouetteInfo");
-    //mgl::SceneNode* floatingSillouette = createNode(FloatingMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, floating);
-    //floatingSillouette->setCallBack(callback);
-    std::cout << "finished" << std::endl;
     */
 }
 
 mgl::SceneNode* MyApp::createNode(int nodeId, std::string mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent,std::string shader) {
 
     mgl::SceneNode* node = new mgl::SceneNode(nodeId);
-    std::cout << "created node" << std::endl;
-
-    //We are creating a root node (only happens once)
     node->setMesh(mesh);
-    std::cout << "created mesh" << std::endl;
     node->setPosition(position);
-    std::cout << "created position" << std::endl;
     node->setRotation(rotation);
-    std::cout << "created rotation" << std::endl;
     node->setScale(scale);
-    std::cout << "created scale" << std::endl;
     node->setShaderProgram(shader);
-    std::cout << "created shader" << std::endl;
-    //SceneGraph->addRoot(node);
     parent->addChild(node);
 
     return node;
@@ -518,9 +421,6 @@ const glm::mat4 ModelMatrix(1.0f);
 
 void MyApp::drawScene(double elapsed) {
     SceneGraph->renderScene(elapsed);
-
-    //mgl::SceneNode* node = SceneGraph->getNode(static_cast<int>(1));
-    //if (node != nullptr) node->drawSillouette();
 }
 
 ////////////////////////////////////////////////////////////////////// CALLBACKS
@@ -556,12 +456,7 @@ void MyApp::windowCloseCallback(GLFWwindow* win) {
 }
 
 void MyApp::processAnimation(double elapsed) {
-    if (mgl::KeyState::getInstance().isKeyPressed(GLFW_KEY_LEFT)) {
-        //SceneGraph->moveToBox(elapsed);
-    }
-    else if (mgl::KeyState::getInstance().isKeyPressed(GLFW_KEY_RIGHT)) {
-        //SceneGraph->moveToShape(elapsed);
-    }
+    // empty for now
 }
 
 /////////////////////////////////////////////////////////////////////////// MAIN
