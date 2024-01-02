@@ -145,7 +145,7 @@ void MyApp::mouseButtonCallback(GLFWwindow* win, int button, int action,
     glReadPixels(static_cast<GLint>(openglCursorPosition.x), static_cast<GLint>(openglCursorPosition.y), 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &hoveredIndex);
 
     if (mgl::KeyState::getInstance().isMouseButtonPressed(GLFW_MOUSE_BUTTON_2)) {
-        std::cout << "in mouse:" << static_cast<int>(previousSelectedIndex) << " " << static_cast<int>(hoveredIndex) << std::endl;
+        //std::cout << "in mouse:" << static_cast<int>(previousSelectedIndex) << " " << static_cast<int>(hoveredIndex) << std::endl;
         mgl::SceneNode* previousNode = SceneGraph->getNode(static_cast<int>(previousSelectedIndex));
         if (previousNode != nullptr) previousNode->isSelected(false);
 

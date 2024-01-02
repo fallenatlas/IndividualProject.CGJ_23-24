@@ -20,7 +20,6 @@ namespace mgl {
 		CallBack* callback;
 		ShaderProgram* shaderProgram;
 		glm::vec3 scale;
-		//glm::vec4 Color;
 
 		SillouetteInfo(CallBack* callback, ShaderProgram* shaderProgram, glm::vec3 scale) : callback(callback), shaderProgram(shaderProgram), scale(scale) {}
 	};

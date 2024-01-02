@@ -340,8 +340,6 @@ namespace mgl
 		node_json["Texture"] = textureInfoName;
 		node_json["Sillouette"] = sillouetteInfoName;
 
-		std::cout << glm::to_string(Position) << std::endl;
-		std::cout << glm::to_string(Rotation) << std::endl;
 		json node_children_json;
 
 		for (auto child : children) {
@@ -375,8 +373,6 @@ namespace mgl
 		json children = node_json["Children"];
 
 		for (auto& el : children.items()) {
-			std::cout << el.key() << std::endl;
-
 			SceneNode* child;
 			std::string type = el.value()["Type"].template get<std::string>();
 			if (type == "Light") {
@@ -386,8 +382,6 @@ namespace mgl
 			else {
 				child = new SceneNode(stoi(el.key()));
 			}
-
-			std::cout << el.key() << std::endl;
 
 			child->deserialize(el.value());
 
