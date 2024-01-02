@@ -316,7 +316,7 @@ void MyApp::createShaderProgram(std::string shaderName, std::string vsFile, std:
             Shader->addAttribute(mgl::TANGENT_ATTRIBUTE, mgl::Mesh::TANGENT);
         }
 
-        Shader->addUniform(mgl::NORMAL_MATRIX);
+        //Shader->addUniform(mgl::NORMAL_MATRIX);
         Shader->addUniform(mgl::TEXTURE);
     }
 

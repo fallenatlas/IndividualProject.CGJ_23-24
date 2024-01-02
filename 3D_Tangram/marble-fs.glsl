@@ -30,19 +30,6 @@ out vec4 FragmentColor;
 
 void main(void)
 {
-	//vec3 N = normalize(exNormal);
-	//vec3 direction = normalize(vec3(1.0, 0.5, 0.25));
-	//float intensity = max(dot(direction, N), 0.0) + 0.2f;
-
-	//FragmentColor = Color * vec4(vec3(intensity), 1.0f);
-	//FragmentColor = vec4(vec3(exTexcoord, 0.0f), 1.0f);
-	//FragmentColor = texture(Texture, exTexcoord) * vec4(vec3(intensity), 1.0f);
-	//float brightness = texture(Texture, exTexcoord).x;
-	//vec3 gray = vec3(brightness);
-	//FragmentColor = vec4(texture(Texture, exTexcoord).x, texture(Texture, exTexcoord).x, texture(Texture, exTexcoord).x, 1.0f);
-	//FragmentColor = texture(Texture, exPosition);
-
-	
 	vec3 N = normalize(exNormal);
 	vec4 lightPositionVC = ViewMatrix * vec4(LightPosition, 1.0);
 	vec3 lightDirectionVC = normalize(lightPositionVC.xyz - exFragPositionVC);
@@ -52,9 +39,9 @@ void main(void)
 
 	vec3 viewDirectionVC = normalize(-exFragPositionVC);
 	vec3 H = normalize(lightDirectionVC + viewDirectionVC);
-	//vec3 reflectDirectionVC = reflect(-lightDirectionVC, N);
+	//vec3 reflectDirectionVC = reflect(-lightDirectionVC, N); // phong lighting
 
-	//float spec = pow(max(dot(viewDirectionVC, reflectDirectionVC), 0.0), 64);
+	//float spec = pow(max(dot(viewDirectionVC, reflectDirectionVC), 0.0), 64); // phong lighting
 	float spec = pow(max(dot(N, H), 0.0), 64);
 	vec3 specular = specularStrength * spec * LightColor;
 

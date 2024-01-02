@@ -243,9 +243,11 @@ namespace mgl
 			setModelMatrix(parentModelMatrix * glm::translate(Position) * glm::mat4(Rotation) * glm::scale(Scale));
 
 			glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+			/* NormalMatrix is currently being calculated on shader, when changing this make sure you also uncomment it in the shaders, when creating the shaderProgram, when setting the model matrix and update it when changing the camera position
 			if (this->shaderProgram->isUniform(mgl::NORMAL_MATRIX)) {
 				glUniformMatrix3fv(this->shaderProgram->Uniforms[mgl::NORMAL_MATRIX].index, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
 			}
+			*/
 			mesh->draw();
 			shaderProgram->unbind();
 		}

@@ -10,7 +10,7 @@ out vec3 exNormal;
 out vec3 exFragPositionVC;
 
 uniform mat4 ModelMatrix;
-uniform mat3 NormalMatrix;
+//uniform mat3 NormalMatrix;
 
 uniform Camera {
    mat4 ViewMatrix;
