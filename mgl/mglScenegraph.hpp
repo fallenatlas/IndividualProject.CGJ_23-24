@@ -11,13 +11,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 #include <vector>
 #include <fstream>
-#include <algorithm>
 
 #include "./json.hpp"
 #include "./mglOrbitCamera.hpp"
@@ -28,6 +24,8 @@
 #include "./mglConventions.hpp"
 #include "./mglManager.hpp"
 #include "./mglSillouette.hpp"
+
+#include "./auxiliary.hpp"
 
 const double THRESHOLD = static_cast<float>(1.0e-5);
 

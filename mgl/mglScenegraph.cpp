@@ -7,9 +7,6 @@
 #include "./mglShader.hpp"
 #include "./mglMesh.hpp"
 
-//using namespace nlohmann::literals;
-//using json = nlohmann::json;
-
 namespace mgl
 {
 	SceneGraph::SceneGraph() {
@@ -83,9 +80,6 @@ namespace mgl
 		frameMovement = { 0.0f, 0.0f, 0.0f };
 		frameRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
-		//ModelMatrixId = modelMatrixId;
-		//NormalMatrixId = normalMatrixId;
-		//NormalMatrixId = -1;
 		mesh = nullptr;
 		shaderProgram = nullptr;
 		callback = nullptr;
@@ -107,11 +101,6 @@ namespace mgl
 		return ModelMatrix;
 	}
 
-	/*
-	void SceneNode::setTextureInfo(TextureInfo* TextureInfo) {
-		textureInfo = TextureInfo;
-	}
-	*/
 	TextureInfo* SceneNode::getTextureInfo() {
 		return textureInfo;
 	}
@@ -306,10 +295,8 @@ namespace mgl
 
 	void SceneNode::applyFrameTransformations(double elapsed) {
 		setPosition(Position + (frameMovement * (float)elapsed));
-		//Position = Position + (frameMovement * (float)elapsed);
 
 		glm::quat targetRotation = (frameRotation) * Rotation;
-		//Rotation = glm::slerp(Rotation, targetRotation, (float)elapsed);
 		setRotation(glm::slerp(Rotation, targetRotation, (float)elapsed));
 
 		frameMovement = { 0.0f, 0.0f, 0.0f };
@@ -365,117 +352,15 @@ namespace mgl
 		return node_json;
 	}
 
-	glm::vec3 deserialize_vec3(std::string str) {
-		// create vec
-		// remove everything except , and number
-		// for until no more number and change the position where that number is supposed to be
-		// vec[1] = ...
-
-		std::string open_delimiter = "(";
-		std::string close_delimiter = ")";
-		std::string delimiter = ",";
-
-		int i = 0;
-		size_t pos = 0;
-		std::string token;
-		glm::vec3 vec = { 0.0f, 0.0f, 0.0f };
-
-		pos = str.find(open_delimiter); // find (
-		str.erase(0, pos + delimiter.length()); // get first number in position
-		str.erase(std::remove(str.begin(), str.end(), ' '), str.end()); // delete spaces
-		str.erase(std::remove(str.begin(), str.end(), ')'), str.end()); // delete ending ')'
-		while ((pos = str.find(delimiter)) != std::string::npos) {
-			token = str.substr(0, pos);
-			vec[i] = std::stof(token);
-			std::cout << token << std::endl;
-			str.erase(0, pos + delimiter.length());
-			i++;
-		}
-
-		vec[i] = std::stof(str);
-		std::cout << glm::to_string(vec) << std::endl;
-
-		return vec;
-	}
-
-	glm::mat4 deserialize_mat4(std::string str) {
-		std::string open_delimiter = "(";
-		std::string close_delimiter = ")";
-		std::string delimiter = ",";
-
-		int col = 0, row = 0;
-		size_t pos = 0;
-		std::string token;
-		glm::mat4 mat(0.0f);
-
-		pos = str.find(open_delimiter); // find (
-		str.erase(0, pos + open_delimiter.length()); // get first number in position
-		str.erase(std::remove(str.begin(), str.end(), '('), str.end()); // delete opening '('
-		str.erase(std::remove(str.begin(), str.end(), ' '), str.end()); // delete spaces
-		str.erase(std::remove(str.begin(), str.end(), ')'), str.end()); // delete ending ')'
-
-		while ((pos = str.find(delimiter)) != std::string::npos) {
-			token = str.substr(0, pos);
-			mat[col][row] = std::stof(token);
-			str.erase(0, pos + delimiter.length());
-			row++;
-			if (row == 4) {
-				col++;
-				row = 0;
-			}
-		}
-
-		mat[col][row] = std::stof(str);
-
-		return mat;
-	}
-
-	glm::quat deserialize_quat(std::string str) {
-		std::string open_delimiter = "(";
-		std::string close_delimiter = ")";
-		std::string delimiter = ",";
-
-		int i = 0;
-		size_t pos = 0;
-		std::string token;
-
-		float number = 0.0f;
-		glm::vec3 vec = { 0.0f, 0.0f, 0.0f };
-
-		pos = str.find(open_delimiter); // find (
-		str.erase(0, pos + delimiter.length()); // get first number in position
-
-		pos = str.find(delimiter);
-		token = str.substr(0, pos); // get number
-		number = std::stof(token);
-		str.erase(0, pos + delimiter.length());
-
-		str.erase(std::remove(str.begin(), str.end(), ' '), str.end()); // delete spaces
-		str.erase(std::remove(str.begin(), str.end(), ')'), str.end()); // delete ending ')'
-		str.erase(std::remove(str.begin(), str.end(), '{'), str.end()); // delete opening '{
-		str.erase(std::remove(str.begin(), str.end(), '{'), str.end()); // delete ending '}'
-		while ((pos = str.find(delimiter)) != std::string::npos) {
-			token = str.substr(0, pos);
-			vec[i] = std::stof(token);
-			str.erase(0, pos + delimiter.length());
-			i++;
-		}
-
-		vec[i] = std::stof(str);
-		glm::quat quat(number, vec);
-
-		return quat;
-	}
-
 	void SceneNode::deserialize(json node_json) {
 
-		ModelMatrix = deserialize_mat4(node_json["ModelMatrix"].template get<std::string>());
+		ModelMatrix = aux::deserialize_mat4(node_json["ModelMatrix"].template get<std::string>());
 
-		Position = deserialize_vec3(node_json["Position"].template get<std::string>());
+		Position = aux::deserialize_vec3(node_json["Position"].template get<std::string>());
 		
-		Rotation = deserialize_quat(node_json["Rotation"].template get<std::string>());
+		Rotation = aux::deserialize_quat(node_json["Rotation"].template get<std::string>());
 		
-		Scale = deserialize_vec3(node_json["Scale"].template get<std::string>());
+		Scale = aux::deserialize_vec3(node_json["Scale"].template get<std::string>());
 		
 		setMesh(node_json["Mesh"].template get<std::string>());
 		
@@ -509,10 +394,6 @@ namespace mgl
 			addChild(child);
 		}
 	}
-
-	
-
-	// normal matrix updated with the transformation matrix
 
 	PointLightNode::PointLightNode(int nodeId, GLint BindingPoint) : SceneNode(nodeId) {
 		this->BindingPoint = BindingPoint;
@@ -563,26 +444,3 @@ namespace mgl
 	}
 	
 }
-
-/*
-//// Serialize
-// explicit conversion to string
-std::string s = j.dump();    // {"happy":true,"pi":3.141}
-
-// serialization with pretty printing
-// pass in the amount of spaces to indent
-std::cout << j.dump(4) << std::endl;
-// {
-//     "happy": true,
-//     "pi": 3.141
-// }
-
-// read a JSON file
-std::ifstream i("file.json");
-json j;
-i >> j;
-
-// write prettified JSON to another file
-std::ofstream o("pretty.json");
-o << std::setw(4) << j << std::endl;
-*/

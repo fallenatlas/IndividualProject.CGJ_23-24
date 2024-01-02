@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\mgl\auxiliary.cpp" />
     <ClCompile Include="..\mgl\mglApp.cpp" />
     <ClCompile Include="..\mgl\mglCallback.cpp" />
     <ClCompile Include="..\mgl\mglCamera.cpp" />
@@ -38,6 +39,7 @@
     <ClCompile Include="hello-3d-world.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\mgl\auxiliary.hpp" />
     <ClInclude Include="..\mgl\json.hpp" />
     <ClInclude Include="..\mgl\json_fwd.hpp" />
     <ClInclude Include="..\mgl\mgl.hpp" />

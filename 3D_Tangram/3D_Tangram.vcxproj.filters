@@ -66,6 +66,9 @@
     <ClCompile Include="..\mgl\mglSillouette.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\mgl\auxiliary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\mgl\mgl.hpp">
@@ -129,6 +132,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\mgl\mglSillouette.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\auxiliary.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
