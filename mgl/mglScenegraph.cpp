@@ -243,13 +243,7 @@ namespace mgl
 			callback->beforeDraw(id);
 		}
 
-		// if (shaderProgram)
-		
-		if (mesh) {
-			// set stencil to write this object id
-			glStencilFunc(GL_ALWAYS, static_cast<GLint>(id), 0xFF);
-			glStencilMask(0xFF);
-
+		if (mesh && shaderProgram) {
 			shaderProgram->bind();
 
 			if (textureInfo) {
@@ -263,7 +257,6 @@ namespace mgl
 			if (this->shaderProgram->isUniform(mgl::NORMAL_MATRIX)) {
 				glUniformMatrix3fv(this->shaderProgram->Uniforms[mgl::NORMAL_MATRIX].index, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
 			}
-			//glUniform4fv(ColorId, 1, glm::value_ptr(Color));
 			mesh->draw();
 			shaderProgram->unbind();
 		}
@@ -275,11 +268,6 @@ namespace mgl
 		if (sillouetteInfo && selected) {
 			drawSillouette();
 		}
-
-		// draw children
-		//for (auto child : children) {
-		//	child->draw();
-		//}
 	}
 
 	SceneNode* SceneNode::getNode(int nodeId) {

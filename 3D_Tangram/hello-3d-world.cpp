@@ -331,6 +331,9 @@ void MyApp::createShaderProgram(std::string shaderName, std::string vsFile, std:
 void MyApp::createCallBacks() {
     mgl::SillouetteCallBack* callback = new mgl::SillouetteCallBack();
     mgl::CallbackManager::getInstance().add("sillouetteCallback", callback);
+
+    mgl::StencilCallBack* stencilCallback = new mgl::StencilCallBack();
+    mgl::CallbackManager::getInstance().add("stencilCallback", stencilCallback);
 }
 
 void MyApp::createSillouetteInfos() {
@@ -380,17 +383,20 @@ void MyApp::createScene() {
     light->setRotation(lightRotation);
     light->setScale(lightScale);
     light->setShaderProgram("lightShader");
+    light->setCallBack("stencilCallback");
     root->addChild(light);
     light->setSillouetteInfo("defaultSillouetteInfo");
 
     // create the wood base object
     mgl::SceneNode* base = createNode(nodeId++, "baseMesh", basePosition, baseRotation, baseScale, root, "woodShader");
     base->setTextureInfo("baseTexture3D");
+    base->setCallBack("stencilCallback");
     base->setSillouetteInfo("baseSillouetteInfo");
 
     // create the marble top object
     mgl::SceneNode* floating = createNode(nodeId++, "floatingMesh", floatingPosition, floatingRotation, floatingScale, base, "marbleShader");
     floating->setTextureInfo("floatingTexture3D");
+    floating->setCallBack("stencilCallback");
     floating->setSillouetteInfo("floatingSillouetteInfo");
     */
 }
