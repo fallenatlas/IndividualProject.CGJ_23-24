@@ -53,7 +53,7 @@ class MyApp : public mgl::App {
   void createMeshes();
   void createMesh(std::string name, std::string meshFile);
   void createTextures();
-  void createTexture(std::string name, mgl::Texture3D::Type type);
+  void createTexture3D(std::string name, mgl::Texture3D::Type type);
   void createShaderPrograms();
   void createShaderProgram(std::string shaderName, std::string vsFile, std::string fsFile, bool sillouette);
   void createCallBacks();
@@ -271,16 +271,16 @@ void MyApp::createTextures() {
     BaseSampler = new mgl::NearestSampler();
     BaseSampler->create();
 
-    createTexture("baseTexture3D", mgl::Texture3D::WOOD);
-    createTexture("floatingTexture3D", mgl::Texture3D::MARBLE);
+    createTexture3D("baseTexture3D", mgl::Texture3D::WOOD);
+    createTexture3D("floatingTexture3D", mgl::Texture3D::MARBLE);
 }
 
-void MyApp::createTexture(std::string name, mgl::Texture3D::Type type) {
+void MyApp::createTexture3D(std::string name, mgl::Texture3D::Type type) {
     mgl::Texture3D* Texture3D = new mgl::Texture3D();
 
     // If the app is failing to load due to memory or its taking too long to start, reduce the texture resolution
-    Texture3D->generatePerlinNoiseTexture3(256, 256, 256, type);
-    //Texture3D->generatePerlinNoiseTexture3(32, 32, 32, type);
+    Texture3D->generatePerlinNoiseTexture(256, 256, 256, type);
+    //Texture3D->generatePerlinNoiseTexture(32, 32, 32, type);
 
     mgl::TextureInfo* TextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, Texture3D, BaseSampler);
     mgl::TextureInfoManager::getInstance().add(name, TextureInfo);
