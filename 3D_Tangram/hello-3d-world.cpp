@@ -34,14 +34,14 @@ class MyApp : public mgl::App {
   void scrollCallback(GLFWwindow* win, double xoffset, double yoffset) override;
 
  private:
-  const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0;
+  const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0, UBO_BP_LIGHT = 1;
   GLuint VaoId;
 
   //mgl::ShaderProgram *Shaders = nullptr;
   mgl::OrbitCamera* OrbitCamera = nullptr;
-  GLint ModelMatrixId;
-  GLint NormalMatrixId;
-  GLint ColorId;
+  //GLint ModelMatrixId;
+  //GLint NormalMatrixId;
+  //GLint ColorId;
   mgl::SceneGraph* SceneGraph = nullptr;
 
   //mgl::Texture2D* BaseTexture = nullptr;
@@ -66,7 +66,8 @@ class MyApp : public mgl::App {
   void createShaderPrograms();
   void createShaderProgram(std::string shaderName, std::string vsFile, std::string fsFile, bool sillouette);
   void createCallBacks();
-  void createSillouetteInfo();
+  void createSillouetteInfos();
+  void createSillouetteInfo(std::string name, glm::vec3 scale);
   void createCameras();
   void createScene();
   mgl::SceneNode* createNode(int nodeId, std::string mesh, glm::vec3 position, glm::quat rotation, glm::vec3 scale, mgl::SceneNode* parent, std::string shader);
@@ -254,12 +255,14 @@ void MyApp::activateStencilBuffer() {
 
 void MyApp::createMeshes() {
     std::string mesh_dir = "../assets/";
-    std::string base_mesh_file = "floating_wood_base.obj";
-    std::string floating_obj_mesh_file = "floating_top_marble.obj";
+    std::string base_mesh_file = "floating_wood_base_centered.obj";
+    std::string floating_obj_mesh_file = "floating_top_marble_smooth.obj";
 
+    std::string cube_mesh_fullname = "../04-assets/models/cube-vtn.obj";
     std::string base_mesh_fullname = mesh_dir + base_mesh_file /*"../04-assets/models/cube-vtn.obj"*/;
     std::string floating_obj_mesh_fullname = mesh_dir + floating_obj_mesh_file;
 
+    createMesh("cubeMesh", cube_mesh_fullname);
     createMesh("baseMesh", base_mesh_fullname);
     createMesh("floatingMesh", floating_obj_mesh_fullname);
 }
@@ -267,6 +270,7 @@ void MyApp::createMeshes() {
 void MyApp::createMesh(std::string name, std::string meshFile) {
     mgl::Mesh* mesh = new mgl::Mesh();
     mesh->joinIdenticalVertices();
+    //mesh->generateSmoothNormals();
     mesh->create(meshFile);
 
     mgl::MeshManager::getInstance().add(name, mesh);
@@ -282,8 +286,8 @@ void MyApp::createTextures() {
 
 void MyApp::createTexture(std::string name, mgl::Texture3D::Type type) {
     mgl::Texture3D* Texture3D = new mgl::Texture3D();
-    //Texture3D->generatePerlinNoiseTexture3(256, 256, 256, type);
-    Texture3D->generatePerlinNoiseTexture3(32, 32, 32, type);
+    Texture3D->generatePerlinNoiseTexture3(256, 256, 256, type);
+    //Texture3D->generatePerlinNoiseTexture3(32, 32, 32, type);
     mgl::TextureInfo* TextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, Texture3D, BaseSampler);
     mgl::TextureInfoManager::getInstance().add(name, TextureInfo);
 }
@@ -293,7 +297,8 @@ void MyApp::createTexture(std::string name, mgl::Texture3D::Type type) {
 void MyApp::createShaderPrograms() {
     createShaderProgram("woodShader", "wood-vs.glsl", "wood-fs.glsl", false);
     createShaderProgram("marbleShader", "marble-vs.glsl", "marble-fs.glsl", false);
-    createShaderProgram("sillouetteShader", "color-vs.glsl", "color-fs.glsl", false);
+    createShaderProgram("sillouetteShader", "color-vs.glsl", "color-fs.glsl", true);
+    createShaderProgram("lightShader", "light-vs.glsl", "light-fs.glsl", true);
 }
 
 void MyApp::createShaderProgram(std::string shaderName, std::string vsFile, std::string fsFile, bool sillouette) {
@@ -325,12 +330,13 @@ void MyApp::createShaderProgram(std::string shaderName, std::string vsFile, std:
     //Shader->addUniform(mgl::NORMAL_MATRIX);
     //Shader->addUniform(mgl::TEXTURE);
     Shader->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
+    Shader->addUniformBlock(mgl::LIGHT_BLOCK, UBO_BP_LIGHT);
     Shader->create();
 
     mgl::ShaderManager::getInstance().add(shaderName, Shader);
 
-    ModelMatrixId = Shader->Uniforms[mgl::MODEL_MATRIX].index;
-    NormalMatrixId = Shader->Uniforms[mgl::NORMAL_MATRIX].index;
+    //ModelMatrixId = Shader->Uniforms[mgl::MODEL_MATRIX].index;
+    //NormalMatrixId = Shader->Uniforms[mgl::NORMAL_MATRIX].index;
     //ColorId = Shaders->Uniforms[mgl::PRIMARY_COLOR_UNIFORM].index;
 }
 
@@ -339,12 +345,19 @@ void MyApp::createCallBacks() {
     mgl::CallbackManager::getInstance().add("sillouetteCallback", callback);
 }
 
-void MyApp::createSillouetteInfo() {
+void MyApp::createSillouetteInfos() {
+    createSillouetteInfo("defaultSillouetteInfo", glm::vec3(1.05f, 1.05f, 1.05f));
+    createSillouetteInfo("baseSillouetteInfo", glm::vec3(1.03f, 1.14f, 1.03f));
+    createSillouetteInfo("floatingSillouetteInfo", glm::vec3(1.03f, 1.08f, 1.03f));
+}
+
+void MyApp::createSillouetteInfo(std::string name, glm::vec3 scale) {
     mgl::SillouetteInfo* sillouetteInfo = new mgl::SillouetteInfo(
         mgl::CallbackManager::getInstance().get("sillouetteCallback"),
-        mgl::ShaderManager::getInstance().get("sillouetteShader")
+        mgl::ShaderManager::getInstance().get("sillouetteShader"),
+        scale
     );
-    mgl::SillouetteInfoManager::getInstance().add("defaultSillouetteInfo", sillouetteInfo);
+    mgl::SillouetteInfoManager::getInstance().add(name, sillouetteInfo);
 }
 
 // common transformation matrixes
@@ -400,18 +413,23 @@ const glm::vec3 translationUp = glm::vec3(-4.0f, 0.0f, 0.0f);
 const glm::mat4 baseMM = glm::mat4(1.0f);
 const glm::mat4 floatingMM = glm::translate(glm::vec3(0.0f, 1.3f, 0.0f)) * glm::scale(glm::vec3(1.0f, 1.3f, 1.0f));
 
-const glm::vec3 basePosition = { 0.0f, 0.0f, 0.0f };
+const glm::vec3 basePosition = { 0.0f, 0.0f, 0.0f }; //-0.207143
 const glm::quat baseRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 const glm::vec3 baseScale = { 1.0f, 1.0f, 1.0f };
 const glm::vec3 floatingPosition = { 0.0f, 1.3f, 0.0f };
 const glm::quat floatingRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 const glm::vec3 floatingScale = { 1.0f, 1.3f, 1.0f };
 
+const glm::vec3 lightPosition = { 2.2f, 3.0f, 3.0f };
+const glm::quat lightRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+const glm::vec3 lightScale = { 0.2f, 0.2f, 0.2f };
+
 
 void MyApp::createScene() {
     int nodeId = 0;
     SceneGraph = new mgl::SceneGraph();
     SceneGraph->deserialize();
+    
     /*
     mgl::SceneNode* root = new mgl::SceneNode(nodeId++);
 
@@ -421,12 +439,33 @@ void MyApp::createScene() {
 
     std::cout << "before base" << std::endl;
 
+    //mgl::SceneNode* light = createNode(nodeId++, "cubeMesh", lightPosition, lightRotation, lightScale, root, "lightShader");
+    //FloatingTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("floatingTexture3D"), BaseSampler);
+    //light->setSillouetteInfo("defaultSillouetteInfo");
+
+    mgl::SceneNode* light = new mgl::PointLightNode(nodeId++, UBO_BP_LIGHT);
+
+    //We are creating a root node (only happens once)
+    light->setMesh("cubeMesh");
+    light->setPosition(lightPosition);
+    light->setRotation(lightRotation);
+    light->setScale(lightScale);
+    light->setShaderProgram("lightShader");
+    //SceneGraph->addRoot(node);
+    root->addChild(light);
+    light->setSillouetteInfo("defaultSillouetteInfo");
+
+
+
+    //mgl::SceneNode* floatingSillouette = createNode(FloatingMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, floating);
+    //floatingSillouette->setCallBack(callback);
+
     // square
     //mgl::SillouetteCallBack* callback = new mgl::SillouetteCallBack();
     mgl::SceneNode* base = createNode(nodeId++, "baseMesh", basePosition, baseRotation, baseScale, root, "woodShader");
     //BaseTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("baseTexture3D"), BaseSampler);
     base->setTextureInfo("baseTexture3D");
-    base->setSillouetteInfo("defaultSillouetteInfo");
+    base->setSillouetteInfo("baseSillouetteInfo");
     std::cout << "created texture" << std::endl;
 
     //mgl::SceneNode* baseSillouette = createNode(BaseMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, root);
@@ -437,7 +476,7 @@ void MyApp::createScene() {
     mgl::SceneNode* floating = createNode(nodeId++, "floatingMesh", floatingPosition, floatingRotation, floatingScale, base, "marbleShader");
     //FloatingTextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, mgl::TextureManager::getInstance().get("floatingTexture3D"), BaseSampler);
     floating->setTextureInfo("floatingTexture3D");
-    floating->setSillouetteInfo("defaultSillouetteInfo");
+    floating->setSillouetteInfo("floatingSillouetteInfo");
     //mgl::SceneNode* floatingSillouette = createNode(FloatingMesh, basePosition, baseRotation, { 1.01f, 1.01f, 1.01f }, orangeColor, floating);
     //floatingSillouette->setCallBack(callback);
     std::cout << "finished" << std::endl;
@@ -492,7 +531,7 @@ void MyApp::initCallback(GLFWwindow* win) {
     createTextures();
     createShaderPrograms();  // after mesh;
     createCallBacks();
-    createSillouetteInfo();
+    createSillouetteInfos();
     createScene();
     createCameras();
 }
@@ -508,8 +547,12 @@ void MyApp::displayCallback(GLFWwindow *win, double elapsed) {
 }
 void MyApp::windowCloseCallback(GLFWwindow* win) {
     delete OrbitCamera;
-    //delete Shaders;
     delete SceneGraph;
+    mgl::MeshManager::getInstance().DestroyObjects();
+    mgl::TextureInfoManager::getInstance().DestroyObjects();
+    mgl::ShaderManager::getInstance().DestroyObjects();
+    mgl::CallbackManager::getInstance().DestroyObjects();
+    mgl::SillouetteInfoManager::getInstance().DestroyObjects();
 }
 
 void MyApp::processAnimation(double elapsed) {

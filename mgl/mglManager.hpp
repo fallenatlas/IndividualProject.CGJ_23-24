@@ -100,11 +100,13 @@ public:
 
         T get(std::string key);
 
+        virtual void DestroyObjects();
+
     protected:
         virtual ~Manager();
 
     private:
-        std::map<std::string, T> shaders;
+        std::map<std::string, T> objects;
         //static ShaderManager instance;
 
         Manager();

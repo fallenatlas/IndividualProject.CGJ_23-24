@@ -37,6 +37,7 @@ namespace mgl {
 
 class SceneGraph;
 class SceneNode;
+class PointLightNode;
 
 ////////////////////////////////////////////////////////////////////// SceneGraph
 
@@ -88,7 +89,7 @@ private:
 	// when getting the shader get these
 	GLint ModelMatrixId;
 	GLint NormalMatrixId;
-	glm::mat4 NormalMatrix;
+	glm::mat3 NormalMatrix;
 
 	SceneNode* parent;
 	std::vector<SceneNode*> children;
@@ -111,8 +112,8 @@ public:
 	void setModelMatrix(glm::mat4 ModelMatrix);
 	glm::mat4 getModelMatrix();
 
-	void setNormalMatrix(glm::mat4 NormalMatrix);
-	glm::mat4 getNormalMatrix();
+	void setNormalMatrix(glm::mat3 NormalMatrix);
+	glm::mat3 getNormalMatrix();
 
 	Mesh* getMesh();
 	void setMesh(std::string meshName);
@@ -122,8 +123,9 @@ public:
 	void setTextureInfo(std::string textureInfoName);
 	std::string getTextureInfoName();
 
-	void setPosition(glm::vec3 position);
+	virtual void setPosition(glm::vec3 position);
 	const glm::vec3 getPosition();
+	const glm::vec3 getGlobalPosition();
 	void setRotation(glm::quat rotation);
 	const glm::quat getRotation();
 	const glm::quat getGlobalRotation();
@@ -147,8 +149,8 @@ public:
 	void update(double elapsed);
 	void draw();
 
-	json serialize();
-	void deserialize(json node_json);
+	virtual json serialize();
+	virtual void deserialize(json node_json);
 
 	SceneNode* getNode(int nodeId);
 
@@ -163,6 +165,21 @@ public:
 	void applyFrameTransformations(double elapsed);
 
 	void drawSillouette();
+};
+
+class PointLightNode : public SceneNode {
+private:
+	GLint BindingPoint;
+	GLuint UboId;
+public:
+	PointLightNode(int nodeId, GLint BindingPoint);
+	virtual ~PointLightNode();
+	virtual void setPosition(glm::vec3 position) override;
+	void bindBuffer();
+	void UnbindBuffer();
+	void setUniformPosition();
+	virtual json serialize() override;
+	virtual void deserialize(json node_json) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

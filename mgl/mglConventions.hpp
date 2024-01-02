@@ -21,6 +21,7 @@ const char VIEW_MATRIX[] = "ViewMatrix";
 const char PROJECTION_MATRIX[] = "ProjectionMatrix";
 const char TEXTURE_MATRIX[] = "TextureMatrix";
 const char CAMERA_BLOCK[] = "Camera";
+const char LIGHT_BLOCK[] = "Light";
 const char PRIMARY_COLOR_UNIFORM[] = "PrimaryColor";
 const char SECONDARY_COLOR_UNIFORM[] = "SecondaryColor";
 const char TEXTURE[] = "Texture";

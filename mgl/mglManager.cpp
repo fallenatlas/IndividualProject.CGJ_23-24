@@ -85,6 +85,13 @@ T Manager<T>::get(std::string key) {
     template <typename T>
     Manager<T>::~Manager(void) {}
 
+    template <typename T>
+    void Manager<T>::DestroyObjects(void) {
+        for (auto object : objects) {
+            delete object.second;
+        }
+    }
+
     /*
     template <typename T>
     Manager<T>& Manager<T>::getInstance(void) {
@@ -105,13 +112,13 @@ T Manager<T>::get(std::string key) {
     void Manager<T>::add(std::string key, T value) {
         // check if this adds
         //data.insert({ key, value });
-        shaders[key] = value;
+        objects[key] = value;
     }
 
     template <typename T>
     T Manager<T>::get(std::string key) {
-        auto pos = shaders.find(key);
-        if (pos == shaders.end()) {
+        auto pos = objects.find(key);
+        if (pos == objects.end()) {
             return nullptr;
         }
         else {

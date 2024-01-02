@@ -2,9 +2,23 @@
     "Callback": "",
     "Children": {
         "1": {
+            "BindingPoint": 1,
+            "Callback": "",
+            "Children": null,
+            "Mesh": "cubeMesh",
+            "ModelMatrix": "mat4x4((0.200000, 0.000000, 0.000000, 0.000000), (0.000000, 0.200000, 0.000000, 0.000000), (0.000000, 0.000000, 0.200000, 0.000000), (2.200000, 3.000000, 3.000000, 1.000000))",
+            "Position": "vec3(2.200000, 3.000000, 3.000000)",
+            "Rotation": "quat(1.000000, {0.000000, 0.000000, 0.000000})",
+            "Scale": "vec3(0.200000, 0.200000, 0.200000)",
+            "Shader": "lightShader",
+            "Sillouette": "defaultSillouetteInfo",
+            "Texture": "",
+            "Type": "Light"
+        },
+        "2": {
             "Callback": "",
             "Children": {
-                "2": {
+                "3": {
                     "Callback": "",
                     "Children": null,
                     "Mesh": "floatingMesh",
@@ -13,8 +27,9 @@
                     "Rotation": "quat(1.000000, {0.000000, 0.000000, 0.000000})",
                     "Scale": "vec3(1.000000, 1.300000, 1.000000)",
                     "Shader": "marbleShader",
-                    "Sillouette": "defaultSillouetteInfo",
-                    "Texture": "floatingTexture3D"
+                    "Sillouette": "floatingSillouetteInfo",
+                    "Texture": "floatingTexture3D",
+                    "Type": "Object"
                 }
             },
             "Mesh": "baseMesh",
@@ -23,8 +38,9 @@
             "Rotation": "quat(1.000000, {0.000000, 0.000000, 0.000000})",
             "Scale": "vec3(1.000000, 1.000000, 1.000000)",
             "Shader": "woodShader",
-            "Sillouette": "defaultSillouetteInfo",
-            "Texture": "baseTexture3D"
+            "Sillouette": "baseSillouetteInfo",
+            "Texture": "baseTexture3D",
+            "Type": "Object"
         }
     },
     "Mesh": "",
@@ -34,5 +50,6 @@
     "Scale": "vec3(1.000000, 1.000000, 1.000000)",
     "Shader": "",
     "Sillouette": "",
-    "Texture": ""
+    "Texture": "",
+    "Type": "Object"
 }

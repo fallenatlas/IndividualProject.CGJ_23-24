@@ -63,6 +63,8 @@
   <ItemGroup>
     <None Include="color-fs.glsl" />
     <None Include="color-vs.glsl" />
+    <None Include="light-fs.glsl" />
+    <None Include="light-vs.glsl" />
     <None Include="marble-fs.glsl" />
     <None Include="marble-vs.glsl" />
     <None Include="wood-fs.glsl" />

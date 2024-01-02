@@ -2,29 +2,45 @@
     "Callback": "",
     "Children": {
         "1": {
+            "BindingPoint": 1,
+            "Callback": "",
+            "Children": null,
+            "Mesh": "cubeMesh",
+            "ModelMatrix": "mat4x4((0.200000, 0.000000, 0.000000, 0.000000), (0.000000, 0.200000, 0.000000, 0.000000), (0.000000, 0.000000, 0.200000, 0.000000), (-1.259772, 3.006889, 0.990077, 1.000000))",
+            "Position": "vec3(-1.259772, 3.006889, 0.990077)",
+            "Rotation": "quat(1.000000, {0.000000, 0.000000, 0.000000})",
+            "Scale": "vec3(0.200000, 0.200000, 0.200000)",
+            "Shader": "lightShader",
+            "Sillouette": "defaultSillouetteInfo",
+            "Texture": "",
+            "Type": "Light"
+        },
+        "2": {
             "Callback": "",
             "Children": {
-                "2": {
+                "3": {
                     "Callback": "",
                     "Children": null,
                     "Mesh": "floatingMesh",
-                    "ModelMatrix": "mat4x4((0.019889, 0.746694, 0.664871, 0.000000), (0.785925, -0.700228, 0.762891, 0.000000), (0.796313, 0.390281, -0.462133, 0.000000), (-0.406128, 0.288252, 0.416611, 1.000000))",
-                    "Position": "vec3(0.000000, -0.961186, -0.391388)",
-                    "Rotation": "quat(0.880006, {-0.474964, 0.000000, 0.000000})",
+                    "ModelMatrix": "mat4x4((0.439519, -0.763952, 0.472441, 0.000000), (0.226160, -0.576693, -1.142927, 0.000000), (0.881227, 0.468605, -0.062071, 0.000000), (-1.598188, 3.307383, 0.060163, 1.000000))",
+                    "Position": "vec3(0.000000, 1.300000, 0.000000)",
+                    "Rotation": "quat(0.758394, {-0.518318, -0.035605, -0.393596})",
                     "Scale": "vec3(1.000000, 1.300000, 1.000000)",
                     "Shader": "marbleShader",
-                    "Sillouette": "defaultSillouetteInfo",
-                    "Texture": "floatingTexture3D"
+                    "Sillouette": "floatingSillouetteInfo",
+                    "Texture": "floatingTexture3D",
+                    "Type": "Object"
                 }
             },
             "Mesh": "baseMesh",
-            "ModelMatrix": "mat4x4((0.019889, 0.746694, 0.664871, 0.000000), (0.997464, 0.030638, -0.064247, 0.000000), (-0.068343, 0.664462, -0.744190, 0.000000), (0.525872, 0.577763, 0.063590, 1.000000))",
-            "Position": "vec3(0.525872, 0.577763, 0.063590)",
-            "Rotation": "quat(0.276739, {-0.658301, -0.662371, -0.226541})",
+            "ModelMatrix": "mat4x4((0.724471, -0.640634, -0.254427, 0.000000), (0.497922, 0.741615, -0.449538, 0.000000), (0.476675, 0.198994, 0.856262, 0.000000), (-2.245486, 2.343283, 0.644562, 1.000000))",
+            "Position": "vec3(-2.245486, 2.343283, 0.644562)",
+            "Rotation": "quat(-0.911369, {0.177900, -0.200551, 0.312320})",
             "Scale": "vec3(1.000000, 1.000000, 1.000000)",
             "Shader": "woodShader",
-            "Sillouette": "defaultSillouetteInfo",
-            "Texture": "baseTexture3D"
+            "Sillouette": "baseSillouetteInfo",
+            "Texture": "baseTexture3D",
+            "Type": "Object"
         }
     },
     "Mesh": "",
@@ -34,5 +50,6 @@
     "Scale": "vec3(1.000000, 1.000000, 1.000000)",
     "Shader": "",
     "Sillouette": "",
-    "Texture": ""
+    "Texture": "",
+    "Type": "Object"
 }

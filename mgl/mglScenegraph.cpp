@@ -85,6 +85,7 @@ namespace mgl
 
 		//ModelMatrixId = modelMatrixId;
 		//NormalMatrixId = normalMatrixId;
+		//NormalMatrixId = -1;
 		mesh = nullptr;
 		shaderProgram = nullptr;
 		callback = nullptr;
@@ -98,7 +99,8 @@ namespace mgl
 
 	void SceneNode::setModelMatrix(glm::mat4 modelmatrix) {
 		ModelMatrix = modelmatrix;
-		setNormalMatrix(glm::transpose(glm::inverse(ModelMatrix)));
+		glm::mat3 nm = glm::mat3(glm::transpose(glm::inverse(ModelMatrix)));
+		setNormalMatrix(nm);
 	}
 
 	glm::mat4 SceneNode::getModelMatrix() {
@@ -140,6 +142,10 @@ namespace mgl
 		return Rotation;
 	}
 
+	const glm::vec3 SceneNode::getGlobalPosition() {
+		return glm::vec3(ModelMatrix[3][0], ModelMatrix[3][1], ModelMatrix[3][2]);
+	}
+
 	const glm::quat SceneNode::getGlobalRotation() {
 		glm::quat parentGlobalRotation = parent ? parent->getGlobalRotation() : glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));;
 		return parentGlobalRotation * getRotation();
@@ -153,11 +159,11 @@ namespace mgl
 		return Scale;
 	}
 
-	void SceneNode::setNormalMatrix(glm::mat4 normalMatrix) {
+	void SceneNode::setNormalMatrix(glm::mat3 normalMatrix) {
 		NormalMatrix = normalMatrix;
 	}
 
-	glm::mat4 SceneNode::getNormalMatrix() {
+	glm::mat3 SceneNode::getNormalMatrix() {
 		return NormalMatrix;
 	}
 
@@ -185,7 +191,7 @@ namespace mgl
 		this->shaderProgram = ShaderManager::getInstance().get(shaderProgramName);
 		if (this->shaderProgram == nullptr) return;
 		ModelMatrixId = this->shaderProgram->Uniforms[mgl::MODEL_MATRIX].index;
-		NormalMatrixId = this->shaderProgram->Uniforms[mgl::NORMAL_MATRIX].index;
+		//NormalMatrixId = this->shaderProgram->Uniforms[mgl::NORMAL_MATRIX].index;
 	}
 
 	std::string SceneNode::getShaderProgramName() {
@@ -254,7 +260,9 @@ namespace mgl
 			setModelMatrix(parentModelMatrix * glm::translate(Position) * glm::mat4(Rotation) * glm::scale(Scale));
 
 			glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
-			glUniformMatrix4fv(NormalMatrixId, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
+			if (this->shaderProgram->isUniform(mgl::NORMAL_MATRIX)) {
+				glUniformMatrix3fv(this->shaderProgram->Uniforms[mgl::NORMAL_MATRIX].index, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
+			}
 			//glUniform4fv(ColorId, 1, glm::value_ptr(Color));
 			mesh->draw();
 			shaderProgram->unbind();
@@ -309,10 +317,12 @@ namespace mgl
 	}
 
 	void SceneNode::applyFrameTransformations(double elapsed) {
-		Position = Position + (frameMovement * (float)elapsed);
+		setPosition(Position + (frameMovement * (float)elapsed));
+		//Position = Position + (frameMovement * (float)elapsed);
 
 		glm::quat targetRotation = (frameRotation) * Rotation;
-		Rotation = glm::slerp(Rotation, targetRotation, (float)elapsed);
+		//Rotation = glm::slerp(Rotation, targetRotation, (float)elapsed);
+		setRotation(glm::slerp(Rotation, targetRotation, (float)elapsed));
 
 		frameMovement = { 0.0f, 0.0f, 0.0f };
 		frameRotation = glm::quat(glm::angleAxis(glm::radians<float>(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -327,7 +337,7 @@ namespace mgl
 		if (mesh && sillouetteInfo->shaderProgram) {
 			sillouetteInfo->shaderProgram->bind();
 
-			const glm::mat4 sillouetteMatrix = ModelMatrix * glm::scale(glm::vec3(1.05f, 1.05f, 1.05f));
+			const glm::mat4 sillouetteMatrix = ModelMatrix * glm::scale(sillouetteInfo->scale);
 			glUniformMatrix4fv(sillouetteInfo->shaderProgram->Uniforms[mgl::MODEL_MATRIX].index, 1, GL_FALSE, glm::value_ptr(sillouetteMatrix));
 
 			mesh->draw();
@@ -344,6 +354,7 @@ namespace mgl
 	json SceneNode::serialize() {
 		json node_json;
 
+		node_json["Type"] = "Object";
 		node_json["ModelMatrix"] = glm::to_string(ModelMatrix);
 		node_json["Position"] = glm::to_string(Position);
 		node_json["Rotation"] = glm::to_string(Rotation);
@@ -492,7 +503,16 @@ namespace mgl
 
 		for (auto& el : children.items()) {
 			std::cout << el.key() << std::endl;
-			SceneNode* child = new SceneNode(stoi(el.key()));
+
+			SceneNode* child;
+			std::string type = el.value()["Type"].template get<std::string>();
+			if (type == "Light") {
+				int bp = el.value()["BindingPoint"].template get<int>();
+				child = new PointLightNode(stoi(el.key()), bp);
+			}
+			else {
+				child = new SceneNode(stoi(el.key()));
+			}
 
 			std::cout << el.key() << std::endl;
 
@@ -505,6 +525,54 @@ namespace mgl
 	
 
 	// normal matrix updated with the transformation matrix
+
+	PointLightNode::PointLightNode(int nodeId, GLint BindingPoint) : SceneNode(nodeId) {
+		this->BindingPoint = BindingPoint;
+		bindBuffer();
+	}
+
+	PointLightNode::~PointLightNode() {
+		UnbindBuffer();
+	}
+
+	void PointLightNode::setPosition(glm::vec3 position) {
+		SceneNode::setPosition(position);
+		setUniformPosition();
+	}
+
+	void PointLightNode::bindBuffer() {
+		glGenBuffers(1, &UboId);
+		glBindBuffer(GL_UNIFORM_BUFFER, UboId);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), 0, GL_STREAM_DRAW);
+		glBindBufferBase(GL_UNIFORM_BUFFER, BindingPoint, UboId);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		setUniformPosition();
+	}
+
+	void PointLightNode::UnbindBuffer() {
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glDeleteBuffers(1, &UboId);
+	}
+
+	void PointLightNode::setUniformPosition() {
+		glm::vec3 position = getGlobalPosition();
+		glBindBuffer(GL_UNIFORM_BUFFER, UboId);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3),
+			glm::value_ptr(position));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+
+	json PointLightNode::serialize() {
+		json node_json = SceneNode::serialize();
+		node_json["Type"] = "Light";
+		node_json["BindingPoint"] = BindingPoint;
+		return node_json;
+	}
+
+	void PointLightNode::deserialize(json node_json) {
+		SceneNode::deserialize(node_json);
+	}
 	
 }
 

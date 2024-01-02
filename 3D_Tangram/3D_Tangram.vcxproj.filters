@@ -151,5 +151,11 @@
     <None Include="color-vs.glsl">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="light-fs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="light-vs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
