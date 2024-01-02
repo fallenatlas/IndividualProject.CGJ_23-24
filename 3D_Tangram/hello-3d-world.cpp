@@ -257,8 +257,9 @@ void MyApp::createMeshes() {
     std::string mesh_dir = "../assets/";
     std::string base_mesh_file = "floating_wood_base_centered.obj";
     std::string floating_obj_mesh_file = "floating_top_marble_smooth.obj";
+    std::string cube_mesh_file = "cube-vtn.obj";
 
-    std::string cube_mesh_fullname = "../04-assets/models/cube-vtn.obj";
+    std::string cube_mesh_fullname = mesh_dir + cube_mesh_file;
     std::string base_mesh_fullname = mesh_dir + base_mesh_file /*"../04-assets/models/cube-vtn.obj"*/;
     std::string floating_obj_mesh_fullname = mesh_dir + floating_obj_mesh_file;
 
@@ -270,7 +271,6 @@ void MyApp::createMeshes() {
 void MyApp::createMesh(std::string name, std::string meshFile) {
     mgl::Mesh* mesh = new mgl::Mesh();
     mesh->joinIdenticalVertices();
-    //mesh->generateSmoothNormals();
     mesh->create(meshFile);
 
     mgl::MeshManager::getInstance().add(name, mesh);
