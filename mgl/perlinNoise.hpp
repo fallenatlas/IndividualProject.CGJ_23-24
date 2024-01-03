@@ -1,9 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// CallBack Abstraction Class
-//
-////////////////////////////////////////////////////////////////////////////////
-
 #ifndef MGL_PERLIN_NOISE_HPP
 #define MGL_PERLIN_NOISE_HPP
 
@@ -22,7 +16,7 @@ namespace mgl {
 		double noise(double x, double y, double z);
 
 	private:
-		 std::vector<int> p;
+		 std::vector<int> permutations;
 
 		 double fade(double t);
 		 double lerp(double t, double a, double b);
