@@ -280,8 +280,8 @@ void MyApp::createTexture3D(std::string name, mgl::Texture3D::Type type) {
     mgl::Texture3D* Texture3D = new mgl::Texture3D();
 
     // If the app is failing to load due to memory or its taking too long to start, reduce the texture resolution
-    //Texture3D->generatePerlinNoiseTexture(256, 256, 256, type);
-    Texture3D->generatePerlinNoiseTexture(32, 32, 32, type);
+    Texture3D->generatePerlinNoiseTexture(256, 256, 256, type);
+    //Texture3D->generatePerlinNoiseTexture(32, 32, 32, type);
 
     mgl::TextureInfo* TextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, Texture3D, BaseSampler);
     mgl::TextureInfoManager::getInstance().add(name, TextureInfo);
