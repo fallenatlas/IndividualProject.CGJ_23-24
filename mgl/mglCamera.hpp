@@ -40,6 +40,8 @@ class Camera {
   void updateProjectionMatrix(const glm::mat4& projectionmatrix);
   void setProjectionMatrix();
   void setActive(bool status);
+  bool getIsActive();
+  GLint getBindingPoint();
 };
 
 ////////////////////////////////////////////////////////////////////////////////

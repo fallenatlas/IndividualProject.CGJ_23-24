@@ -11,6 +11,10 @@ OrbitCamera::OrbitCamera(GLuint bindingpoint, bool active, glm::vec3 cameraPosit
     position = cameraPosition;
     focusPoint = cameraFocusPoint;
     up = cameraUp;
+
+	//glm::vec3 direction = glm::normalize(position - focusPoint);
+	//side = glm::normalize(glm::cross(direction, up));
+
     zoom = glm::length(focusPoint - position);
 
 	const glm::mat4 persp = glm::perspective(glm::radians(30.0f), 4.0f / 3.0f, 1.0f, 40.0f);
@@ -95,6 +99,18 @@ glm::vec3 OrbitCamera::getUpVector() {
 
 glm::vec3 OrbitCamera::getSideVector() {
 	return side;
+}
+
+json OrbitCamera::serialize() {
+	json node_json;
+
+	node_json["Active"] = getIsActive();
+	node_json["BindingPoint"] = (int)getBindingPoint();
+	node_json["Position"] = glm::to_string(position);
+	node_json["FocusPoint"] = glm::to_string(focusPoint);
+	node_json["Up"] = glm::to_string(up);
+
+	return node_json;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

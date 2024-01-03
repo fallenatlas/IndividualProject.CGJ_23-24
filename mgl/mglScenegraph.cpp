@@ -11,10 +11,12 @@ namespace mgl
 {
 	SceneGraph::SceneGraph() {
 		this->root = nullptr;
+		this->camera = nullptr;
 	}
 
 	SceneGraph::~SceneGraph() {
 		delete root;
+		delete camera;
 	}
 
 	void SceneGraph::setCamera(OrbitCamera* camera) {
@@ -46,6 +48,7 @@ namespace mgl
 
 	void SceneGraph::serialize() {
 		json node_json = root->serialize();
+		node_json["Camera"] = camera->serialize();
 
 		std::ofstream o("pretty.json");
 		o << std::setw(4) << node_json << std::endl;
@@ -57,7 +60,19 @@ namespace mgl
 		json node_json;
 		i >> node_json;
 
+		if (root) delete root;
 		SceneNode* root = new SceneNode(0);
+
+		// deserialize camera
+		if (camera) delete camera;
+		json camera_json = node_json["Camera"];
+		bool active = camera_json["Active"].template get<bool>();
+		GLint bindingPoint = camera_json["BindingPoint"].template get<int>();
+		glm::vec3 position = aux::deserialize_vec3(camera_json["Position"].template get<std::string>());
+		glm::vec3 focusPoint = aux::deserialize_vec3(camera_json["FocusPoint"].template get<std::string>());
+		glm::vec3 up = aux::deserialize_vec3(camera_json["Up"].template get<std::string>());
+
+		camera = new OrbitCamera(bindingPoint, active, position, focusPoint, up);
 
 		root->deserialize(node_json);
 

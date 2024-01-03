@@ -144,7 +144,7 @@ public:
 	CallBack* getCallBack();
 	std::string getCallBackName();
 
-	void update(double elapsed);
+	virtual void update(double elapsed);
 	void draw();
 
 	virtual json serialize();

@@ -176,6 +176,7 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action,
 
     if (mgl::KeyState::getInstance().isKeyPressed(GLFW_KEY_L)) {
         SceneGraph->deserialize();
+        OrbitCamera = SceneGraph->getCamera();
     }
 
     handleObjectRotation();
@@ -279,8 +280,8 @@ void MyApp::createTexture3D(std::string name, mgl::Texture3D::Type type) {
     mgl::Texture3D* Texture3D = new mgl::Texture3D();
 
     // If the app is failing to load due to memory or its taking too long to start, reduce the texture resolution
-    Texture3D->generatePerlinNoiseTexture(256, 256, 256, type);
-    //Texture3D->generatePerlinNoiseTexture(32, 32, 32, type);
+    //Texture3D->generatePerlinNoiseTexture(256, 256, 256, type);
+    Texture3D->generatePerlinNoiseTexture(32, 32, 32, type);
 
     mgl::TextureInfo* TextureInfo = new mgl::TextureInfo(GL_TEXTURE0, GL_TEXTURE0, mgl::TEXTURE, Texture3D, BaseSampler);
     mgl::TextureInfoManager::getInstance().add(name, TextureInfo);
@@ -370,11 +371,16 @@ void MyApp::createScene() {
 
     // comment to disable loading from file
     SceneGraph->deserialize();
+    OrbitCamera = SceneGraph->getCamera();
     
     // uncomment to enable loading from app, this is where you can add things to the scene
     /*
     mgl::SceneNode* root = new mgl::SceneNode(nodeId++);
     SceneGraph->addRoot(root);
+
+    // if we want to save the camera, if we don't take this out and serialialization in sceneGraph too
+    OrbitCamera = new mgl::OrbitCamera(UBO_BP, true, glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    SceneGraph->setCamera(OrbitCamera);
 
     // create the light node
     mgl::SceneNode* light = new mgl::PointLightNode(nodeId++, UBO_BP_LIGHT);
@@ -417,8 +423,8 @@ mgl::SceneNode* MyApp::createNode(int nodeId, std::string mesh, glm::vec3 positi
 ////////////////////////////////////////////////////////////////////////// CAMERA
 
 void MyApp::createCameras() {
-    OrbitCamera = new mgl::OrbitCamera(UBO_BP, true, glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    SceneGraph->setCamera(OrbitCamera);
+    //OrbitCamera = new mgl::OrbitCamera(UBO_BP, true, glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //SceneGraph->setCamera(OrbitCamera);
 }
 
 ////////////////////////////////////////////////////////////////////////// SCENE
@@ -452,7 +458,7 @@ void MyApp::displayCallback(GLFWwindow *win, double elapsed) {
     drawScene(elapsed); 
 }
 void MyApp::windowCloseCallback(GLFWwindow* win) {
-    delete OrbitCamera;
+    //delete OrbitCamera;
     delete SceneGraph;
     mgl::MeshManager::getInstance().DestroyObjects();
     mgl::TextureInfoManager::getInstance().DestroyObjects();

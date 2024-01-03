@@ -13,8 +13,12 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
+#include "./json.hpp"
 #include "./mglCamera.hpp"
+
+using json = nlohmann::json;
 
 namespace mgl {
 
@@ -50,6 +54,7 @@ class OrbitCamera : public Camera {
   void setProjectionOrthographic();
   glm::vec3 getUpVector();
   glm::vec3 getSideVector();
+  json serialize();
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,12 @@
 {
     "Callback": "",
+    "Camera": {
+        "Active": true,
+        "BindingPoint": 0,
+        "FocusPoint": "vec3(0.000000, 0.000000, 0.000000)",
+        "Position": "vec3(5.000000, 5.000000, 5.000000)",
+        "Up": "vec3(-0.408248, 0.816497, -0.408248)"
+    },
     "Children": {
         "1": {
             "BindingPoint": 1,

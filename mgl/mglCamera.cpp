@@ -79,5 +79,13 @@ void Camera::setActive(bool status) {
     }
 }
 
+bool Camera::getIsActive() {
+    return isActive;
+}
+
+GLint Camera::getBindingPoint() {
+    return BindingPoint;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 }  // namespace mgl
